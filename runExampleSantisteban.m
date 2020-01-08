@@ -1,10 +1,10 @@
 %
 % runExampleSantisteban.m 
 %
-% Copyright (C) 2020  University of Newcastle, Australia
+% Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 07/01/2020
+% Last modified: 08/01/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 restoredefaultpath
 clc
 clear
+close all
 %% House Keeping
 tickFontSize = 12;
 set(0,'defaultAxesFontsize',tickFontSize)
@@ -31,13 +32,29 @@ set(0,'defaultTextInterpreter','latex')
 set(0,'defaultLegendInterpreter', 'latex')
 set(0,'defaultAxesTickLabelInterpreter', 'latex')
 set(0, 'defaultLineLinewidth',2)
+set(0,'defaultFigureColor','w')
 %% Load Data
 addpath ./data
+addpath ./utility_functions
 load CubeProj.mat
 %% Plot Data
 figure(1); clf;
-plot(tof,Tr{3}(100,:))
+plot(tof,Tr{3}(100,:))%arbitrary
 xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
+opts.startRange = [tof(1) tof(150)];    %Fitting left side of edge
+opts.endRange   = [tof(371) tof(end)];  %Fitting right side of edge
+opts.method     = 'santisteban2001';    %Fitting algorithm
+opts.plot       = true;                 %plot results along the way
+
+opts.a00    = 0.5;          %Initial guess for a0
+opts.b00    = 0.5;          %Initial guess for b0
+opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
+opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
+opts.t_hkl0 = tof(250);     %Initial guess for edge location
+opts.sigma  = 0.006;        %Initial guess for gaussian broadening term
+opts.tau    = 0.008;        %Initial guess for exponential decay term
+
+[d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);
