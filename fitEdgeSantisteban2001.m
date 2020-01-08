@@ -11,7 +11,9 @@ function [edgePos,sigma,TrFit] = fitEdgeSantisteban2001(Tr,tof,opts)
 %       opts.b00    :   Initial guess
 %       opts.a_hkl  :   Initial guess
 %       opts.b_hkl  :   Initial guess
-%       opts.p00    :   Initial guess
+%       opts.t_hkl0 = 0.0187;     %Initial guess for edge location
+%       opts.sigma  = 0.006;        %Initial guess for gaussian broadening term
+%       opts.tau    = 0.008;        %Initial guess for exponential decay term
 %
 % Outputs:
 %   - edgePos is the location of the braggEdge

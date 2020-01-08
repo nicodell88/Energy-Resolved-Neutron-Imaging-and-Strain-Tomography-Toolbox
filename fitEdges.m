@@ -50,7 +50,7 @@ if nargin==3
             case 'tremsin2011'
                 edgeFit = @(tr,wl,op)fitEdgeTremsin2011(tr,wl,op);
             case 'hendriks2020'
-                edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
+                edgeFit = @(tr,wl,op)fitEdgeHendriks2020(tr,wl,op);
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
