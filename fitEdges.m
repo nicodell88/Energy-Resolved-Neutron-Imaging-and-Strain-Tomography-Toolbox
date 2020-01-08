@@ -48,7 +48,7 @@ if nargin==3
             case 'santisteban2001'
                 edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
             case 'tremsin2011'
-                edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
+                edgeFit = @(tr,wl,op)fitEdgeTremsin2011(tr,wl,op);
             case 'hendriks2020'
                 edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
             otherwise
