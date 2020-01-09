@@ -1,5 +1,5 @@
 %
-% runExampleHendriks.m 
+% runExampleAttenuation.m 
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -44,19 +44,17 @@ xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
-opts.startRange = [0.0175 0.0180];    %Fitting left side of edge
-opts.endRange   = [0.019 0.0195];  %Fitting right side of edge
-opts.method     = 'hendriks2020';    %Fitting algorithm
+opts.startRange = [tof(1) tof(150)];    %Fitting left side of edge
+opts.endRange   = [tof(371) tof(end)];  %Fitting right side of edge
+opts.method     = 'attenuation';    %Fitting algorithm
 opts.plot       = true;                 %plot results along the way
 
-opts.a00    = 0.5;          %Initial guess for a0
-opts.b00    = 0.5;          %Initial guess for b0
-opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
-opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
-opts.t_hkl0 = 0.0187;       %Initial guess for edge location
-opts.sigma  = 0.006;        %Initial guess for gaussian broadening term
-opts.tau    = 0.008;        %Initial guess for exponential decay term
-opts.C1     = 0.1;          %Initial guess for pedistool
-opts.C2     = 0.5;          %Initial guess for slope
+opts.a00        = 0.5;          %Initial guess for a0
+opts.b00        = 0.5;          %Initial guess for b0
+opts.a_hkl0     = 0.5;          %Initial guess for a_hkl
+opts.b_hkl0     = 0.5;          %Initial guess for b_hkl
+opts.t_hkl0     = tof(250);     %Initial guess for edge location
+opts.sigma0     = 0.006;        %Initial guess for gaussian broadening term
+opts.tau0       = 0.008;        %Initial guess for exponential decay term
 
 [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);

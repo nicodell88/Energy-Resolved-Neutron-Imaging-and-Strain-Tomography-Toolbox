@@ -1,5 +1,6 @@
-function [edgePos,sigma,TrFit] = fitEdgeHendriks2020(Tr,tof,opts)
-%fitEdgeHendriks2020 fits a bragg-edge using the method presented in:
+function [edgePos,sigma,TrFit] = fitEdgeGPMethod(Tr,tof,opts)
+%fitEdgeGPMethod fits a bragg-edge using the method presented in:
+%   TODO: Insert Bib entry
 %   TODO: Insert arxiv link when paper is written.
 %
 % Inputs:
@@ -9,8 +10,8 @@ function [edgePos,sigma,TrFit] = fitEdgeHendriks2020(Tr,tof,opts)
 %   - options is a structure containing
 %       opts.a00    :   Initial guess
 %       opts.b00    :   Initial guess
-%       opts.a_hkl  :   Initial guess
-%       opts.b_hkl  :   Initial guess
+%       opts.a_hkl0 :   Initial guess
+%       opts.b_hkl0 :   Initial guess
 %
 %
 % Outputs:
@@ -35,12 +36,6 @@ a00 = 0.5;
 b00 = 0.5;
 a_hkl0 = 0.5;
 b_hkl0 = 0.5;
-% p00 = [0.0187,0.006,0.008,1];
-p00 = [mean([opts.startRange(2) opts.endRange(1)]),... % Edge location
-    (tof(2)-tof(1))*1e3,... % width
-    (tof(2)-tof(1))*1e3,... % assymetry
-    0,...   %pedistool
-    0.5];     %slope
 
 if isfield(opts,'a00')
     a00 = opts.a00;

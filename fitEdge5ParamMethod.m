@@ -1,6 +1,10 @@
-function [edgePos,sigma,TrFit] = fitEdgeSantisteban2001(Tr,tof,opts)
-%FITEDGESANTISTEBAN2001 fits a bragg-edge using the method presented in:
-%   https://onlinelibrary.wiley.com/doi/pdf/10.1107/S0021889801003260
+function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
+%fitEdge5ParamMethod fits a bragg-edge using the method used by: Tremsin,
+%   A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
+%   Investigation of microstructure in additive manufactured inconel 625 by
+%   spatially resolved neutron transmission spectroscopy. Science and
+%   Technology of advanced MaTerialS 17 (1), 324?336.
+%   https://doi.org/10.1080/14686996.2016.1190261
 %
 % Inputs:
 %   - Tr is a Nx1 double containing the normalised transmisssion curve
@@ -11,9 +15,11 @@ function [edgePos,sigma,TrFit] = fitEdgeSantisteban2001(Tr,tof,opts)
 %       opts.b00    :   Initial guess
 %       opts.a_hkl  :   Initial guess
 %       opts.b_hkl  :   Initial guess
-%       opts.t_hkl0 = 0.0187;     %Initial guess for edge location
-%       opts.sigma  = 0.006;        %Initial guess for gaussian broadening term
-%       opts.tau    = 0.008;        %Initial guess for exponential decay term
+%       opts.t_hkl0 :   Initial guess for edge location
+%       opts.sigma0 :   Initial guess for gaussian broadening term
+%       opts.tau0   :   Initial guess for exponential decay term
+%       opts.C10    :   Initial guess for pedistool
+%       opts.C20    :   Initial guess for slope
 %
 % Outputs:
 %   - edgePos is the location of the braggEdge
@@ -40,7 +46,9 @@ b_hkl0 = 0.5;
 % p00 = [0.0187,0.006,0.008,1];
 p00 = [mean([opts.startRange(2) opts.endRange(1)]),... % Edge location
     (tof(2)-tof(1))*1e3,... % width
-    (tof(2)-tof(1))*1e3]; % assymetry 
+    (tof(2)-tof(1))*1e3,... % assymetry 
+    0,...   %pedistool
+    0.5];     %slope
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -57,11 +65,17 @@ end
 if isfield(opts,'t_hkl0')
     p00(1) = opts.t_hkl0;
 end
-if isfield(opts,'sigma')
-    p00(2) = opts.sigma;
+if isfield(opts,'sigma0')
+    p00(2) = opts.sigma0;
 end
-if isfield(opts,'tau')
-    p00(3) = opts.tau;
+if isfield(opts,'tau0')
+    p00(3) = opts.tau0;
+end
+if isfield(opts,'C10')
+    p00(4) = opts.C10;
+end
+if isfield(opts,'C20')
+    p00(5) = opts.C20;
 end
 %% Fit edge
 % 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
@@ -86,14 +100,15 @@ function [edge_spect] = edgeModel(params,t)
 t_hkl = params(1);      % edge location
 sigma = params(2);      % width (broadening)
 tau = params(3);        % assymetry
-% v = params(4);
+C1  = params(4);        % height
+C2  = params(5);        % slope
 
-a0 = params(4);
-b0 = params(5);
-a_hkl = params(6);
-b_hkl = params(7);
+a0 = params(6);
+b0 = params(7);
+a_hkl = params(8);
+b_hkl = params(9);
 
-B = 1/2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
+B = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau));
 

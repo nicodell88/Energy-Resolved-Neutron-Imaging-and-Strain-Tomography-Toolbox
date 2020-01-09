@@ -8,7 +8,7 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %       the width of each array in Tr.
 %       - options is a structure containing
 %           opts.method      :  a char array defining the fitting method
-%                               ('Santisteban2001', 'Tremsin2011', 'Hendriks2020')
+%                               ('attenuation', '5param', 'gp')
 %           opts.startRange  :  a 2 element vector containing the start
 %                               and end range for fitting the left side of the
 %                               Bragg-Edge [start end] with the same units as
@@ -45,18 +45,18 @@ if nargin==3
     %% Method
     if isfield(opts,'method')
         switch lower(opts.method)
-            case 'santisteban2001'
-                edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
-            case 'tremsin2011'
-                edgeFit = @(tr,wl,op)fitEdgeTremsin2011(tr,wl,op);
-            case 'hendriks2020'
-                edgeFit = @(tr,wl,op)fitEdgeHendriks2020(tr,wl,op);
+            case 'attenuation'
+                edgeFit = @(tr,wl,op)fitEdgeAttenuationMethod(tr,wl,op);
+            case '5param'
+                edgeFit = @(tr,wl,op)fitEdge5ParamMethod(tr,wl,op);
+            case 'gp'
+                edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
     else
-        opts.method = 'Santisteban2001';
-        edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
+        opts.method = 'attenuation';
+        edgeFit = @(tr,wl,op)fitEdgeAttenuationMethod(tr,wl,op);
     end
     %% left and right ranges
     if isfield(opts,'startRange')
@@ -75,8 +75,8 @@ if nargin==3
         opts.endIdx      = [round(0.75*ntof) ntof];
     end
 else
-    opts.method = 'Santisteban2001';
-    edgeFit = @(tr,wl,op)fitEdgeSantisteban2001(tr,wl,op);
+    opts.method = 'attenuation';
+    edgeFit = @(tr,wl,op)fitEdgeAttenuation(tr,wl,op);
     ntof = length(tof);
     opts.startIdx    = [1 round(0.25*ntof)];
     opts.endIdx      = [round(0.75*ntof) ntof];
