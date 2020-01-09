@@ -37,8 +37,8 @@ optionsFit.Display      = 'off';
 %% Initial guess
 
 p00 = [mean(opts.range),... % Edge location
-    (tof(2)-tof(1))*1e3,... % width
-    (tof(2)-tof(1))*1e3,... % assymetry 
+    1e-5,... % width
+    1e-5,... % assymetry 
     min(Tr),...   %pedistool
     0.5*(max(Tr)-min(Tr))];     %slope
 
