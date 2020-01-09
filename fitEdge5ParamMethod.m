@@ -11,10 +11,6 @@ function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
 %   for a single projection
 %   - tof is an Nx1 array of wave-lengths or time-of-flight.
 %   - options is a structure containing
-%       opts.a00    :   Initial guess
-%       opts.b00    :   Initial guess
-%       opts.a_hkl  :   Initial guess
-%       opts.b_hkl  :   Initial guess
 %       opts.t_hkl0 :   Initial guess for edge location
 %       opts.sigma0 :   Initial guess for gaussian broadening term
 %       opts.tau0   :   Initial guess for exponential decay term
@@ -39,29 +35,13 @@ optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
 %% Initial guess
-a00 = 0.5;
-b00 = 0.5;
-a_hkl0 = 0.5;
-b_hkl0 = 0.5;
-% p00 = [0.0187,0.006,0.008,1];
-p00 = [mean([opts.startRange(2) opts.endRange(1)]),... % Edge location
+
+p00 = [mean(opts.range),... % Edge location
     (tof(2)-tof(1))*1e3,... % width
     (tof(2)-tof(1))*1e3,... % assymetry 
-    0,...   %pedistool
-    0.5];     %slope
+    min(Tr),...   %pedistool
+    0.5*(max(Tr)-min(Tr))];     %slope
 
-if isfield(opts,'a00')
-    a00 = opts.a00;
-end
-if isfield(opts,'b00')
-    b00 = opts.b00;
-end
-if isfield(opts,'a_hkl0')
-    a_hkl0 = opts.a_hkl0;
-end
-if isfield(opts,'b_hkl0')
-    b_hkl0 = opts.b_hkl0;
-end
 if isfield(opts,'t_hkl0')
     p00(1) = opts.t_hkl0;
 end
@@ -78,22 +58,14 @@ if isfield(opts,'C20')
     p00(5) = opts.C20;
 end
 %% Fit edge
-% 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
-fit1 = @(p,x) exp(-(p(1) + p(2).*x));
-[p,~,~,~,~,~,~] = lsqcurvefit(fit1,[a00;b00],tof(opts.endIdx(1):opts.endIdx(2)),Tr(opts.endIdx(1):opts.endIdx(2)),[],[],optionsFit);
-a0 = p(1); b0 = p(2);
-% 2) fit to the far left of the edge where B = 0;
-fit2 = @(p,x) exp(-(a0 + b0.*x)).*exp(-(p(1)+p(2).*x));
-[p,~,~,~,~,~,~] = lsqcurvefit(fit2,[a_hkl0;b_hkl0],tof(opts.startIdx(1):opts.startIdx(2)),Tr(opts.startIdx(1):opts.startIdx(2)),[],[],optionsFit);
-a_hkl = p(1); b_hkl = p(2);
-% 3) now fit the area around the edge
-fit3 = @(p,x) edgeModel([p a0 b0 a_hkl b_hkl],x);
-[p,~,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
+idx = opts.rangeIdx(1):opts.rangeIdx(2);
+fitMe = @(p,x) edgeModel(p,x);
+[p,~,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 sigma = (ci(1,2)-ci(1,1))/4;
-TrFit = fit3(p,tof);
+TrFit = fitMe(p,tof);
 end
 
 function [edge_spect] = edgeModel(params,t)
@@ -103,17 +75,12 @@ tau = params(3);        % assymetry
 C1  = params(4);        % height
 C2  = params(5);        % slope
 
-a0 = params(6);
-b0 = params(7);
-a_hkl = params(8);
-b_hkl = params(9);
+%TODO figure out whether this one is correct or a type in the paper
+% edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
+%     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
+%     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));%TODO this is slightly different to santisteban's
 
-B = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
+edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
-    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau));
-
-A1 = exp(-(a0+b0.*t));
-A2 = exp(-(a_hkl+b_hkl.*t));
-
-edge_spect = A1.*( A2 +(1-A2).*(B));
+    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
 end

@@ -44,10 +44,10 @@ xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
-opts.startRange = [0.0175 0.0180];    %Fitting left side of edge
-opts.endRange   = [0.019 0.0195];  %Fitting right side of edge
-opts.method     = 'gp';    %Fitting algorithm
-opts.plot       = true;                 %plot results along the way
+opts.startRange = [0.0175 0.0180];  %Fitting left side of edge
+opts.endRange   = [0.019 0.0195];   %Fitting right side of edge
+opts.method     = 'gp';             %Fitting algorithm
+opts.plot       = true;             %plot results along the way
 
 opts.a00    = 0.5;          %Initial guess for a0
 opts.b00    = 0.5;          %Initial guess for b0

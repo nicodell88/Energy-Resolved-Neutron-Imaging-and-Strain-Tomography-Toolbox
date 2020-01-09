@@ -74,6 +74,14 @@ if nargin==3
         ntof = length(tof);
         opts.endIdx      = [round(0.75*ntof) ntof];
     end
+    
+    if isfield(opts,'range')
+        assert(numel(opts.range)==2,'Expected opts.range to contain two elements.')
+        [~,opts.rangeIdx] = min((tof(:).'-opts.range(:)).^2,[],2);
+    else
+        ntof = length(tof);
+        opts.rangeIdx     = [round(0.35*ntof) round(0.65*ntof)];
+    end
 else
     opts.method = 'attenuation';
     edgeFit = @(tr,wl,op)fitEdgeAttenuation(tr,wl,op);
