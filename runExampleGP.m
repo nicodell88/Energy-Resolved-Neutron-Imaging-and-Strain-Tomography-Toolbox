@@ -53,6 +53,9 @@ opts.a00    = 0.5;          %Initial guess for a0
 opts.b00    = 0.5;          %Initial guess for b0
 opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
 opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
-
+opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
+opts.l      = 1e-4;         %Squared-Exponential Kernel Hyperparameter, lengthscale
+opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
+opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
 
 [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);

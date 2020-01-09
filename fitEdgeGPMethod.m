@@ -12,7 +12,8 @@ function [edgePos,sigma,TrFit] = fitEdgeGPMethod(Tr,tof,opts)
 %       opts.b00    :   Initial guess
 %       opts.a_hkl0 :   Initial guess
 %       opts.b_hkl0 :   Initial guess
-%
+%       opts.sig_f  :   Squared-Exponential Kernel Hyperparameter, output variance
+%       opts.l      :   Squared-Exponential Kernel Hyperparameter, lengthscale
 %
 % Outputs:
 %   - edgePos is the location of the braggEdge
@@ -32,10 +33,14 @@ optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
 %% Initial guess
-a00 = 0.5;
-b00 = 0.5;
-a_hkl0 = 0.5;
-b_hkl0 = 0.5;
+a00     = 0.5;
+b00     = 0.5;
+a_hkl0  = 0.5;
+b_hkl0  = 0.5;
+sig_f   = 1;
+l       = 1e-4;
+ns      = 3000;
+nx      = 2500;
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -49,11 +54,22 @@ end
 if isfield(opts,'b_hkl0')
     b_hkl0 = opts.b_hkl0;
 end
-%TODO add hyperparameters to struct
-%TODO add number of samples to struct
-%TODO move to opts struct
-ns = 3000;
-nx = 2500;
+
+%GP
+if isfield(opts,'sig_f')
+    sig_f = opts.sig_f;
+end
+if isfield(opts,'l')
+    l = opts.l;
+end
+if isfield(opts,'ns')
+    ns = opts.ns;
+end
+if isfield(opts,'nx')
+    nx = opts.nx;
+end
+
+
 %% Fit edge
 %% 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
 fit1 = @(p,x) exp(-(p(1) + p(2).*x));
@@ -72,9 +88,6 @@ ny = length(tof);
 sig_m = std([Tr(opts.endIdx(1):opts.endIdx(2)) - g2(tof(opts.endIdx(1):opts.endIdx(2))),...
     Tr(opts.startIdx(1):opts.startIdx(2))-g1(tof(opts.startIdx(1):opts.startIdx(2)))]);
 % Hyperparameters
-sig_f = 1;
-% l = 0.02;
-l = 9e-5;
 
 %GP
 xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
@@ -114,7 +127,8 @@ sLams = xt(Is);
 %% Collect Results
 edgePos = mean(sLams);
 sigma = std(sLams);
-TrFit = festp;
+TrFit = exp(-a0-b0*tof).*...
+	(exp(-a_hkl-b_hkl*tof) + (1-exp(-a_hkl - b_hkl*tof)) .*festp.');
 % Calculate d-spacings and confidence
 % d_cell{k}(i)=mean(sLams);
 % std_cell{k}(i)=std(sLams);  %% not sure how to do this?
