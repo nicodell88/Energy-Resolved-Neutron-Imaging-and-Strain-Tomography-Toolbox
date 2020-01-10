@@ -7,7 +7,7 @@ function [wh,flag] = updateWaitbar(n, N, wh)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 08/01/2020
+% Last modified: 10/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 flag = false;

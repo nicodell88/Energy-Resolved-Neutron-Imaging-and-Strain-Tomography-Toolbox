@@ -26,7 +26,7 @@ function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 08/01/2020
+% Last modified: 10/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -76,11 +76,11 @@ C1  = params(4);        % height
 C2  = params(5);        % slope
 
 %TODO figure out whether this one is correct or a type in the paper
-% edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
-%     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
-%     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));%TODO this is slightly different to santisteban's
-
 edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
-    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
+    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));%TODO this is slightly different to santisteban's
+
+% edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
+%     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
+%     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
 end
