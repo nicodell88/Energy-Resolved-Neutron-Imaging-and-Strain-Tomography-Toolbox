@@ -4,7 +4,7 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 10/01/2020
+% Last modified: 13/01/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ opts.plot       = true;             %plot results along the way
 opts.t_hkl0     = 0.0187;      %Initial guess for edge location
 opts.sigma0  	= 1e-5;        %Initial guess for gaussian broadening term
 opts.tau0    	= 1e-5;        %Initial guess for exponential decay term
-%% omitting these allows fitEdge5ParamMethod to choose better initial conditions for each projection.
+%% Omitting these allows fitEdge5ParamMethod to choose better initial conditions for each projection.
 % opts.C10     	= 0.25;        %Initial guess for pedistool
 % opts.C20     	= 0.25;        %Initial guess for slope
 

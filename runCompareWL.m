@@ -1,5 +1,5 @@
 %
-% runCompare.m 
+% runCompareWL.m 
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -39,59 +39,59 @@ addpath ./utility_functions
 load CubeProj.mat
 %% Plot Data
 figure(1); clf;
-plot(tof,Tr{1}(20,:))%arbitrary
-xlabel('Time-Of-Flight - [seconds]')
+plot(wl,Tr{1}(20,:))%arbitrary
+xlabel('Wave Length - [\AA]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
-opts.startRange = [tof(1) tof(150)];    %Fitting left side of edge
-opts.endRange   = [tof(371) tof(end)];  %Fitting right side of edge
-opts.range      = [0.018 0.019];    %Range for fitting 5 param method
-opts.method     = 'gp';             %Fitting algorithm
-opts.plot       = false;             %plot results along the way
+opts.startRange = [wl(1) wl(150)];      %Fitting left side of edge
+opts.endRange   = [wl(371) wl(end)];    %Fitting right side of edge
+opts.range      = [wl(260) wl(400)];     %Range for fitting 5 param method
+opts.method     = 'gp';                 %Fitting algorithm
+opts.plot       = false;                %plot results along the way
 %% Used for Attenuation method
 opts.a00    = 0.5;          %Initial guess for a0
 opts.b00    = 0.5;          %Initial guess for b0
 opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
 opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
 %% Used for parametric methods
-opts.t_hkl0     = 0.0187;      %Initial guess for edge location
-opts.sigma0  	= 1e-5;        %Initial guess for gaussian broadening term
-opts.tau0    	= 1e-5;        %Initial guess for exponential decay term
+opts.t_hkl0     = 4.05;      %Initial guess for edge location
+opts.sigma0  	= 5e-3;        %Initial guess for gaussian broadening term
+opts.tau0    	= 5e-3;        %Initial guess for exponential decay term
 %% GP
 opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
-opts.l      = 1e-4;         %Squared-Exponential Kernel Hyperparameter, lengthscale
+opts.l      = 2e-2;         %Squared-Exponential Kernel Hyperparameter, lengthscale
 opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
 opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
 
 testProj = {Tr{1}(200,:)};
 opts.method     = 'attenuation';    %Fitting algorithm
-[attenBragg,stdAtten,TrFit_cell1] = fitEdges(testProj,tof,opts);
+[attenBragg,stdAtten,TrFit_cell1] = fitEdges(testProj,wl,opts);
 opts.method     = '5param';         %Fitting algorithm
-[fiveparamBragg,stdFive,TrFit_cell2] = fitEdges(testProj,tof,opts);
+[fiveparamBragg,stdFive,TrFit_cell2] = fitEdges(testProj,wl,opts);
 opts.method     = 'gp';             %Fitting algorithm
-[gpBragg,stdGP,TrFit_cell3] = fitEdges(testProj,tof,opts);
+[gpBragg,stdGP,TrFit_cell3] = fitEdges(testProj,wl,opts);
 %% Plot Results
 figure(2); clf;
 ax(1) = subplot(2,1,1);
 
-plot(tof,TrFit_cell1{1});
+plot(wl,TrFit_cell1{1});
 hold on
-plot(tof,TrFit_cell2{1});
-plot(tof,TrFit_cell3{1});
-plot(tof,testProj{1},'.');
-xlabel('time-of-flight - [seconds]')
+plot(wl,TrFit_cell2{1});
+plot(wl,TrFit_cell3{1});
+plot(wl,testProj{1},'.');
+xlabel('Wave Length - [\AA]')
 ylabel('Normalised Transmission')
 legend('Attenuation Method','5 Parameter Method','GP Method','Data')
 title('Edge Fitting Comparison')
 ax(2) = subplot(2,1,2);
 cla
-x = linspace(tof(1),tof(end),2000);
+x = linspace(wl(1),wl(end),2000);
 plot(x,normpdf(x,attenBragg{1},stdAtten{1}))
 hold on
 plot(x,normpdf(x,fiveparamBragg{1},stdFive{1}))
 plot(x,normpdf(x,gpBragg{1},stdGP{1}))
-xlabel('time-of-flight - [seconds]')
+xlabel('Wave Length - [\AA]')
 ylabel('Probability Density')
 legend('Attenuation Method','5 Parameter Method','GP Method')
 linkaxes(ax,'x');

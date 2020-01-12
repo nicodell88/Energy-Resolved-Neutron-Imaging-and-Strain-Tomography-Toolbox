@@ -29,7 +29,7 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 10/01/2020
+% Last modified: 13/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% TODO: alow opts to contain initial guess for curve elements
@@ -100,36 +100,45 @@ std_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
 
 if opts.plot
-   figure
-   Hdata    = plot(tof,nan(size(tof)),'.');
-   hold on
-   Hfit     = plot(tof,nan(size(tof)),'.');
-   Htitle   = title('Projection');
-   grid minor
-   ylim([0 1])
+    Hfig = figure;
+    Hdata    = plot(tof,nan(size(tof)),'.');
+    hold on
+    Hfit     = plot(tof,nan(size(tof)),'.');
+    Htitle   = title('Projection');
+    xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}')
+    grid minor
+    ylim([0 1])
 end
 
+% Initialise Waitbar
+[Cnrows,~] = cellfun(@size, Tr);
+nAll = sum(Cnrows);
 wh = updateWaitbar();
+iter = 0;
 % Loop over projections
 for k = 1:np
-  [wh,flag] = updateWaitbar(k,np,wh);
-  if flag
-      break
-  end
-   %Loop over measurements in this projection
-   for i = 1:size(Tr{k},1)
-       % Call edge fitting function
-       [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
-       % Plot Results
-       if opts.plot
-           msg = sprintf('Projection %d, Measurement %d',k,i);
-           Htitle.String = msg;
-           Hdata.YData = Tr{k}(i,:);
-           Hfit.YData  = TrFit_cell{k}(i,:);
-           drawnow
-       end
-   end
+    %Loop over measurements in this projection
+    for i = 1:size(Tr{k},1)
+        iter = iter+1;
+        [wh,flag] = updateWaitbar(iter,nAll,wh);
+        if flag
+            return
+        end
+        % Call edge fitting function
+        [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
+        % Plot Results
+        if opts.plot
+            msg = sprintf('Projection %d, Measurement %d',k,i);
+            Htitle.String = msg;
+            Hdata.YData = Tr{k}(i,:);
+            Hfit.YData  = TrFit_cell{k}(i,:);
+            drawnow
+        end
+    end
 end
 delete(wh)
+if opts.plot
+   close(Hfig);
+end
 end
 
