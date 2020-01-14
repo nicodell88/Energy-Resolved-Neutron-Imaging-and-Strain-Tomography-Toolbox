@@ -26,7 +26,7 @@ function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 10/01/2020
+% Last modified: 15/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -75,7 +75,7 @@ tau = params(3);        % assymetry
 C1  = params(4);        % height
 C2  = params(5);        % slope
 
-%% As presented in : A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
+%% As presented in : Tremsin A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by
 %   spatially resolved neutron transmission spectroscopy. Science and
 %   Technology of advanced MaTerialS 17 (1), 324?336.
@@ -84,9 +84,9 @@ C2  = params(5);        % slope
 % edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
 %     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
 %     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));
-
-%% Closer to Santisteban's original function
-% Note the removal of the 1/sqrt(2) when compared with ^^
+% 
+% The 1/sqrt(2) in the final term was confirmed as a mis-print by Tremsin
+% the intended equation is:
 edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
