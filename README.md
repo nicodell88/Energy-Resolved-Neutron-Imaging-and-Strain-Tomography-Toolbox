@@ -10,6 +10,8 @@ This toolbox implements three Bragg-edge fitting methods.
 
 3. A newly developed method, presented in [[3]](#3), which uses the Bragg-edge attenuation model, as in [[1]](#1), but instead of modelling the transition with a parametric function, we model the residual with a Gaussian Process (GP) and utilise the properties of the GP and a Monte-Carlo step to obtain an estimate of the Bragg-edge location and confidence interval.
 
+Additionally, a Bragg-edge analysis method which uses cross-correlation between different Bragg-edges to determine the change in lattice parameter [[4]](#4) is implemented.
+
 ## References
 <a id="1">[1]</a>  Santisteban, J., Edwards, L., Steuwer, A., Withers, P., 2001. Time-of-flight neutron transmission diffraction. Journal of applied crystallography 34 (3), 289-297. [https://onlinelibrary.wiley.com/doi/pdf/10.1107/S0021889801003260](https://onlinelibrary.wiley.com/doi/pdf/10.1107/S0021889801003260)
 
@@ -18,3 +20,6 @@ Tremsin, A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016. Investiga
 
 <a id="3">[3]</a> 
 TODO
+
+<a id="4">[4]</a> 
+Ramadhan, R.S., Kockelmann, W., Minniti, T., Chen, B., Parfitt, D., Fitzpatrick, M.E. and Tremsin, A.S., 2019. Characterization and application of Bragg-edge transmission imaging for strain measurement and crystallographic analysis on the IMAT beamline. Journal of Applied Crystallography, 52(2). [https://journals.iucr.org/j/issues/2019/02/00/ks5612/ks5612.pdf](https://journals.iucr.org/j/issues/2019/02/00/ks5612/ks5612.pdf)
