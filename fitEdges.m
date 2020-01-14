@@ -19,6 +19,7 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %                               units as tof
 %           opts.plot        :  a logical flag. When true this will plot
 %                               each Bragg edge as it is fitted.
+%           opts. ...        :  Other options specific to fitEdge...
 %   Outputs:
 %       - d_cell is a cell array containing the bragg edge location for
 %       each projection.
@@ -29,15 +30,14 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 13/01/2020
+% Last modified: 14/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
-
-%% TODO: alow opts to contain initial guess for curve elements
 
 %% Inspect Data
 assert(numel(tof)==length(tof),'Expected tof to be a Nx1 vector');
-%TODO: check that tr is a cell array
-%TODO: test that length(tof) matches dimension 2 of each cell in Tr
+assert(iscell(Tr),'Expected ''Tr'' to be a cell array');
+[~,Trncols] = cellfun(@size, Tr);
+assert(all(Trncols == length(tof)),'Expected the number of columns in each cell of Tr to be equal to the length of tof');
 
 tof = tof(:).';
 %% Fill opts structure

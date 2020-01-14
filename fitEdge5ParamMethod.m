@@ -75,12 +75,19 @@ tau = params(3);        % assymetry
 C1  = params(4);        % height
 C2  = params(5);        % slope
 
-%TODO figure out whether this one is correct or a type in the paper
-edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
-    - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
-    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));%TODO this is slightly different to santisteban's
-
+%% As presented in : A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
+%   Investigation of microstructure in additive manufactured inconel 625 by
+%   spatially resolved neutron transmission spectroscopy. Science and
+%   Technology of advanced MaTerialS 17 (1), 324?336.
+%   https://doi.org/10.1080/14686996.2016.1190261
+%
 % edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
 %     - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
-%     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
+%     .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./(sqrt(2)*tau)));
+
+%% Closer to Santisteban's original function
+% Note the removal of the 1/sqrt(2) when compared with ^^
+edge_spect = C1+C2.*(erfc(-(t-t_hkl)./(sqrt(2)*sigma))...
+    - exp(-(t-t_hkl)./tau + sigma^2./(2*tau.^2))...
+    .*erfc(-(t-t_hkl)./(sqrt(2)*sigma)+sigma./tau)); 
 end

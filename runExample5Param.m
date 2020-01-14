@@ -31,7 +31,7 @@ set(0,'defaultAxesTitleFontsize',25/tickFontSize)
 set(0,'defaultTextInterpreter','latex')
 set(0,'defaultLegendInterpreter', 'latex')
 set(0,'defaultAxesTickLabelInterpreter', 'latex')
-set(0, 'defaultLineLinewidth',2)
+set(0,'defaultLineLinewidth',2)
 set(0,'defaultFigureColor','w')
 %% Load Data
 addpath ./data
@@ -44,7 +44,7 @@ xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
-opts.range      = [0.018 0.019];  %Range for fitting
+opts.range      = [0.018 0.019];    %Range for fitting
 opts.method     = '5param';    		%Fitting algorithm
 opts.plot       = true;             %plot results along the way
 
