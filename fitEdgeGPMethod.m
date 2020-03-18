@@ -4,9 +4,9 @@ function [edgePos,sigma,TrFit] = fitEdgeGPMethod(Tr,tof,opts)
 %   TODO: Insert arxiv link when paper is written.
 %
 % Inputs:
-%   - Tr is a Nx1 double containing the normalised transmisssion curve
+%   - Tr is a 1xN double containing the normalised transmisssion curve
 %   for a single projection
-%   - tof is an Nx1 array of wave-lengths or time-of-flight.
+%   - tof is an 1xN array of wave-lengths or time-of-flight.
 %   - options is a structure containing
 %       opts.a00    :   Initial guess
 %       opts.b00    :   Initial guess
@@ -43,6 +43,7 @@ l       = 1e-4;     % GP lengthscale
 ns      = 3000;     % number of samples to draw to compute variance
 nx      = 2500;     % number of points to predict at
 useInterp = true;   % uses an interpolation procedure to reduce the size of matrix inversion
+optimiseHP = false;  % if true optimises the lengthscale for each Transmission spectra
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -70,8 +71,21 @@ end
 if isfield(opts,'nx')
     nx = opts.nx;
 end
-if isfield(opts,'useInterp')
-   useInterp = opts.useInterp; 
+if isfield(opts,'GPscheme')
+   GPscheme = opts.GPscheme; 
+   if strcmpi(GPscheme,'interp')
+      useInterp = true; 
+   elseif strcmpi(GPscheme,'full')
+       useInterp = false;
+   elseif strcmpi(GPscheme,'hilbertspace')
+       error('Should not have gotten here')
+   else
+       error('Invalide GP scheme specified, should be one of full, interp, or hilbertspace')
+   end
+end
+
+if isfield(opts,'optimiseHP')
+    optimiseHP = opts.optimiseHP;
 end
 
 
@@ -89,10 +103,17 @@ g1 = @(x) exp(-(a0 + b0.*x)).*exp(-(a_hkl+b_hkl.*x));
 g2 = @(x) exp(-(a0 + b0.*x));
 
 y = (Tr - g1(tof)).';
+x = tof.';
 ny = length(tof);
 sig_m = std([Tr(opts.endIdx(1):opts.endIdx(2)) - g2(tof(opts.endIdx(1):opts.endIdx(2))),...
     Tr(opts.startIdx(1):opts.startIdx(2))-g1(tof(opts.startIdx(1):opts.startIdx(2)))]);
 % Hyperparameters
+if optimiseHP
+    fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
+    nlM = @(l) LogMarginalSE(l,x,y,g1(x),g2(x),sig_m);
+    logl = fminunc(nlM,0,fminopts);
+    l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
+end
 
 %GP
 if useInterp
@@ -103,7 +124,6 @@ end
 
 xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
 
-x = tof.';
 K = sig_f^2 * exp(-0.5*(x - x').^2/l^2) .* ((g2(x) - g1(x)) .*(g2(x') - g1(x')));
 Kyy = K + eye(ny)*sig_m^2;
 
