@@ -88,6 +88,13 @@ if isfield(opts,'optimiseHP')
     optimiseHP = opts.optimiseHP;
 end
 
+if isfield(opts,'covfunc')
+    covfunc = opts.covfunc;
+    if ~strcmpi(covfunc,'se')
+        error('Full and interp GP scheme are only implemented for squared-exponential covariance function')
+    end
+end
+
 
 %% Fit edge
 %% 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
