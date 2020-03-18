@@ -51,7 +51,22 @@ if nargin==3
             case '5param'
                 edgeFit = @(tr,wl,op)fitEdge5ParamMethod(tr,wl,op);
             case 'gp'
-                edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
+                if isfield(opts,'GPscheme')
+                    if ~isfield(opts,'covfunc')
+                        opts.covfunc = 'SE';
+                    end
+                    if strcmpi(opts.GPscheme,'hilbertspace') || ~strcmpi(opts.covfunc,'SE')
+                        if ~strcmpi(opts.covfunc,'SE') && ~strcmpi(opts.GPscheme,'hilbertspace')
+                            warning('%s covariance func can only be used with hilbertspace scheme.',opts.GPscheme)
+                        end
+                        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op); 
+                    elseif strcmpi(opts.GPscheme,'full') || strcmpi(opts.GPscheme,'interp')
+                         edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);              
+                    else
+                        error('%s is not a valid GP scheme, see help fitEdges',opts.GPscheme);
+                    end
+
+                end
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
