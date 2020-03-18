@@ -28,7 +28,6 @@ function [lengthscale,opts] = optimiseGP(Tr,tof,opts)
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
-%   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
 % Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
@@ -158,6 +157,12 @@ for k = 1:np
         Sig_m = [Sig_m;sig_m];
     end
 end
+[~,c] = size(Y);
+if c > 100
+    warning(['About to run optimisation on data from ', num2str(c), ' Bragg-edges.',...
+ 'This could be very slow, consider passing in a subset of the data.'])
+end
+
 disp('Optimising lengthscale')
 if ~strcmpi(opts.covfunc,'m52')
     fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','iter');
