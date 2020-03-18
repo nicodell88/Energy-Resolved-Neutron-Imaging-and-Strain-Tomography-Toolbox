@@ -4,7 +4,8 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 13/01/2020
+%   Johannes Hendriks <johannes.hendriks@newcastle.edu.au>
+% Last modified: 18/03/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -60,7 +61,7 @@ opts.sigma0  	= 5e-3;        %Initial guess for gaussian broadening term
 opts.tau0    	= 5e-3;        %Initial guess for exponential decay term
 %% GP
 opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
-opts.l      = 2e-2;         %Squared-Exponential Kernel Hyperparameter, lengthscale
+opts.l      = 3e-2;         %Squared-Exponential Kernel Hyperparameter, lengthscale
 opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
 opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
 

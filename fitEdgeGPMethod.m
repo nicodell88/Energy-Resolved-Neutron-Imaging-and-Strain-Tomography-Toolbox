@@ -24,7 +24,8 @@ function [edgePos,sigma,TrFit] = fitEdgeGPMethod(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 10/01/2020
+%   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
+% Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -37,10 +38,11 @@ a00     = 0.5;
 b00     = 0.5;
 a_hkl0  = 0.5;
 b_hkl0  = 0.5;
-sig_f   = 1;
-l       = 1e-4;
-ns      = 3000;
-nx      = 2500;
+sig_f   = 1;    
+l       = 1e-4;     % GP lengthscale
+ns      = 3000;     % number of samples to draw to compute variance
+nx      = 2500;     % number of points to predict at
+useInterp = true;   % uses an interpolation procedure to reduce the size of matrix inversion
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -68,6 +70,9 @@ end
 if isfield(opts,'nx')
     nx = opts.nx;
 end
+if isfield(opts,'useInterp')
+   useInterp = opts.useInterp; 
+end
 
 
 %% Fit edge
@@ -90,6 +95,12 @@ sig_m = std([Tr(opts.endIdx(1):opts.endIdx(2)) - g2(tof(opts.endIdx(1):opts.endI
 % Hyperparameters
 
 %GP
+if useInterp
+   nh = nx;
+   nx = length(tof); 
+   xt_interp = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nh)';
+end
+
 xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
 
 x = tof.';
@@ -99,15 +110,16 @@ Kyy = K + eye(ny)*sig_m^2;
 Kfy = sig_f^2 * exp(-0.5*(xt - x').^2/l^2).*(g2(x') - g1(x'));
 dKfy = -(xt - x')/l^2 .* Kfy;
 ddKff = sig_f^2 * (1 - (xt-xt').^2/l^2)/l^2 .* exp(-0.5*(xt - xt').^2/l^2);
-
-% estimated at the original wavelengths for plotting purposes
 Kfyp = sig_f^2 * exp(-0.5*(x - x').^2/l^2).*(g2(x') - g1(x'));
-festp = Kfyp*(Kyy\y);
-
+ 
 C = chol(Kyy,'upper');
-g = dKfy*(C\(C'\y));
 
 alpha = (C'\dKfy');
+festp = Kfyp*(C\(C.'\y));           % estimated edge shape
+
+g = dKfy*(C\(C.'\y));
+
+alpha = (C.'\dKfy');
 V = ddKff- alpha'*alpha;
 
 
@@ -121,17 +133,21 @@ else
     sg = g + sV.'*randn(nx,ns);
 end
 
-[~,Is] = max([g sg]);
+if useInterp
+    g_interp = interp1(xt,g,xt_interp,'v5cubic');
+    sg_interp = interp1(xt,sg,xt_interp,'v5cubic');
+    [~,Is] = max([g_interp sg_interp]);
+    sLams = xt_interp(Is);
+else
+    [~,Is] = max([g sg]);
+    sLams = xt(Is);
+end
 
-sLams = xt(Is);
+
 %% Collect Results
 edgePos = mean(sLams);
 sigma = std(sLams);
 TrFit = exp(-a0-b0*tof).*...
 	(exp(-a_hkl-b_hkl*tof) + (1-exp(-a_hkl - b_hkl*tof)) .*festp.');
-% Calculate d-spacings and confidence
-% d_cell{k}(i)=mean(sLams);
-% std_cell{k}(i)=std(sLams);  %% not sure how to do this?
-% edge_shape{k}(i,:) = festp;
 
 end

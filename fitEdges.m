@@ -30,7 +30,8 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 14/01/2020
+%   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
+% Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% Inspect Data
@@ -103,9 +104,10 @@ if opts.plot
     Hfig = figure;
     Hdata    = plot(tof,nan(size(tof)),'.');
     hold on
-    Hfit     = plot(tof,nan(size(tof)),'.');
+    Hfit     = plot(tof,nan(size(tof)),'--');
     Htitle   = title('Projection');
     xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}')
+    legend('Tr','Edge fit')
     grid minor
     ylim([0 1])
 end
