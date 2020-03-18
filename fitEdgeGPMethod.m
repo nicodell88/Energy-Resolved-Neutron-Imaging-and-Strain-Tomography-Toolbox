@@ -114,7 +114,6 @@ Kfyp = sig_f^2 * exp(-0.5*(x - x').^2/l^2).*(g2(x') - g1(x'));
  
 C = chol(Kyy,'upper');
 
-alpha = (C'\dKfy');
 festp = Kfyp*(C\(C.'\y));           % estimated edge shape
 
 g = dKfy*(C\(C.'\y));
