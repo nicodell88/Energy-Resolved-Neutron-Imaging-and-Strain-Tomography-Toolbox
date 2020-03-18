@@ -1,5 +1,4 @@
 function [Phi,Phi_T,SLambda,lambdas, dPhi_T] = hilbert_approxSE(l,sig_f,m,L,x_test,x_obs)
-%[Phi,Phi_T,SLambda,lambdas] = hilbert_approx(l,sig_f,m,x_test,x_obs)
 %   l: length scales
 %   sig_f: prior std
 %   m: number of basis functions

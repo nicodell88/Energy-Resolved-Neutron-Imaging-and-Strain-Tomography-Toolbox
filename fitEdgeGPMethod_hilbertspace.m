@@ -155,8 +155,10 @@ elseif strcmpi(covfunc,'m32')
     [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM32(l,sig_f,m_basis,L,xt,x);  
 
 elseif strcmpi(covfunc,'m52')
+    dlambda = 11/l/m_basis;    
+    L = max(pi/2/dlambda,tof(end)-tof(1));
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM52(l,sig_f,m_basis,L,xt,x);  
 
-    error('Not implemented yet')
 else 
     error('Invalid covariance function.')
 end
