@@ -127,7 +127,15 @@ for k = 1:np
             return
         end
         % Call edge fitting function
-        [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
+        try
+            [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
+        catch e
+            delete(wh)
+            if opts.plot
+               close(Hfig);
+            end
+            error(e.message);
+        end
         % Plot Results
         if opts.plot
             msg = sprintf('Projection %d, Measurement %d',k,i);
