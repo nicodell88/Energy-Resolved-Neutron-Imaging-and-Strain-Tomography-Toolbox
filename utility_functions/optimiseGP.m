@@ -1,6 +1,7 @@
 function [lengthscale,opts] = optimiseGP(Tr,tof,opts)
-%FITEDGES Fits Bragg edges to input data.
-%   [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
+%FITEDGES Optimise the lengthscale used for Gaussian process regression of
+%the bragg edges
+%   [lengthscale,opts] = optimiseGP(Tr,tof,opts)
 %   Inputs:
 %       - Tr is a cell-array of normalised transmission intensity data. Each cell
 %       is a projection.
@@ -20,11 +21,10 @@ function [lengthscale,opts] = optimiseGP(Tr,tof,opts)
 %                               each Bragg edge as it is fitted.
 %           opts. ...        :  Other options specific to fitEdge...
 %   Outputs:
-%       - d_cell is a cell array containing the bragg edge location for
-%       each projection.
-%       - std_cell is a cell array containing corresponding standard
-%       deviation estimates for each result in d_cell.
-%       - TrFit is is the Bragg edge model for each fit evaluated at tof
+%       - lengthscale: the optimum lengthscale for the particular scheme
+%       and covariance function specified in opts
+%       - opts: the options structure with the lengthscale set and
+%       optimiseHP set to false so that optimisation wont be rerun
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
