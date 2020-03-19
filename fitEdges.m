@@ -1,4 +1,4 @@
-function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
+function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
 %FITEDGES Fits Bragg edges to input data.
 %   [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %   Inputs:
@@ -26,6 +26,7 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %       - std_cell is a cell array containing corresponding standard
 %       deviation estimates for each result in d_cell.
 %       - TrFit is is the Bragg edge model for each fit evaluated at tof
+%       - fitinfo_cell contains additional fit information
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -143,7 +144,7 @@ for k = 1:np
         end
         % Call edge fitting function
         try
-            [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
+            [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:),fitinfo_cell{1}(i)] = edgeFit(Tr{k}(i,:),tof,opts);
         catch e
             delete(wh)
             if opts.plot

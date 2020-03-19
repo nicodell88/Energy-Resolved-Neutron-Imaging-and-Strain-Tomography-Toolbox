@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo] = fitEdge5ParamMethod(Tr,tof,opts)
 %fitEdge5ParamMethod fits a bragg-edge using the method used by: Tremsin,
 %   A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by
@@ -21,6 +21,11 @@ function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
 %   - edgePos is the location of the braggEdge
 %   - sigma is the estimated standard deviation
 %   - TrFit is is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the fit
+%       fitinfo.resnorm     : the squared 2 norm of the residual as
+%                               calcualted by lsqcurvefit
+%       fitinfo.edgewidth   : edge width parameter from the attenuation model 
+%       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -60,12 +65,16 @@ end
 %% Fit edge
 idx = opts.rangeIdx(1):opts.rangeIdx(2);
 fitMe = @(p,x) edgeModel(p,x);
-[p,~,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
+[p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 sigma = (ci(1,2)-ci(1,1))/4;
 TrFit = fitMe(p,tof);
+
+fitinfo.resnorm = resnorm;
+fitinfo.edgewidth = p(2);
+fitinfo.egdgeassymetry = p(3);
 end
 
 function [edge_spect] = edgeModel(params,t)

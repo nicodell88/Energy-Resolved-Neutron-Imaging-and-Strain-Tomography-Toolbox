@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit] = fitEdgeAttenuationMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethod(Tr,tof,opts)
 %fitEdgeAttenuationMethod fits a bragg-edge using the method presented in:
 %   Santisteban, J., Edwards, L., Steuwer, A., Withers, P., 2001.
 %   Time-of-flight neutron transmission diffraction. Journal of applied
@@ -21,12 +21,18 @@ function [edgePos,sigma,TrFit] = fitEdgeAttenuationMethod(Tr,tof,opts)
 % Outputs:
 %   - edgePos is the location of the braggEdge
 %   - sigma is the estimated standard deviation
-%   - TrFit is is the Bragg edge model evaluated at tof
+%   - TrFit is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the fit
+%       fitinfo.resnorm     : the squared 2 norm of the residual as
+%                               calcualted by lsqcurvefit
+%       fitinfo.edgewidth   : edge width parameter from the attenuation model 
+%       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
+%   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>
 % Last modified: 10/01/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
@@ -77,12 +83,16 @@ fit2 = @(p,x) exp(-(a0 + b0.*x)).*exp(-(p(1)+p(2).*x));
 a_hkl = p(1); b_hkl = p(2);
 % 3) now fit the area around the edge
 fit3 = @(p,x) edgeModel([p a0 b0 a_hkl b_hkl],x);
-[p,~,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
+[p,resnorm,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 sigma = (ci(1,2)-ci(1,1))/4;
 TrFit = fit3(p,tof);
+
+fitinfo.resnorm = resnorm;
+fitinfo.edgewidth = p(2);
+fitinfo.egdgeassymetry = p(3);
 end
 
 function [edge_spect] = edgeModel(params,t)
@@ -104,4 +114,5 @@ A1 = exp(-(a0+b0.*t));
 A2 = exp(-(a_hkl+b_hkl.*t));
 
 edge_spect = A1.*( A2 +(1-A2).*(B));
+
 end

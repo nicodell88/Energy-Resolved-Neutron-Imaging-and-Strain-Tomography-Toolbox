@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit] = fitEdgeGPMethod_hilbertspace(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod_hilbertspace(Tr,tof,opts)
 %fitEdgeGPMethod fits a bragg-edge using the method presented in:
 %   TODO: Insert Bib entry
 %   TODO: Insert arxiv link when paper is written.
@@ -19,6 +19,13 @@ function [edgePos,sigma,TrFit] = fitEdgeGPMethod_hilbertspace(Tr,tof,opts)
 %   - edgePos is the location of the braggEdge
 %   - sigma is the estimated standard deviation
 %   - TrFit is is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the quality of the fit
+%       fitinfo.lengthscale     : the lengthscale used
+%       fitinfo.std_residual    : the standard deviaton of the residual
+%       fitinfo.rms_residual    : the root mean square of the residual
+%       fitinfo.fitqual         : an estimate of the fit quality given by
+%                                   the radio sig_m / std(residual)
+%       fitinfo.widthathalfheight: the peak width at half height
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -150,7 +157,7 @@ if strcmpi(covfunc,'se')
     L = max(pi/2/dlambda,tof(end)-tof(1));
     [Phi,~,SLambda,~, dPhi_T] = hilbert_approxSE(l,sig_f,m_basis,L,xt,x);
 elseif strcmpi(covfunc,'m32')
-    dlambda = 22/l/m_basis;    
+    dlambda = 30/l/m_basis;    
     L = max(pi/2/dlambda,tof(end)-tof(1));
     [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM32(l,sig_f,m_basis,L,xt,x);  
 
@@ -190,5 +197,33 @@ edgePos = mean(sLams);
 sigma = std(sLams);
 TrFit = exp(-a0-b0*tof).*...
 	(exp(-a_hkl-b_hkl*tof) + (1-exp(-a_hkl - b_hkl*tof)) .*festp.');
+
+% check fit quality
+fitqual = sig_m/std(Tr-TrFit);
+if fitqual > 2
+    warning('The ratio of sig_m/std(residual) is high ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
+end
+if fitqual < 0.5
+    warning('The ratio of sig_m/std(residual) is low ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
+end
+
+
+fitinfo.lengthscale = l;                            % store the lengthscale used
+fitinfo.std_residual = std(Tr-TrFit);               % standard deviation of the residual
+fitinfo.rms_residual = sqrt(mean((Tr-TrFit).^2));   % root mean square of hte residual
+fitinfo.fitqual = fitqual;
+half_height = max(g)/2;
+
+[xi,~] = polyxpoly(xt,g,[xt(1);xt(end)],[half_height;half_height]);
+if length(xi) == 2
+    widthathalfheight = max(xi) - min(xi);
+else
+    widthathalfheight = nan;
+end
+fitinfo.widthathalfheight = widthathalfheight;
+
+
+
+
 
 end
