@@ -137,7 +137,7 @@ if optimiseHP
         fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
         nlM = @(l) LogMarginalSE(l,x,y,g1(x),g2(x),sig_m);
         logl = fminunc(nlM,0,fminopts);
-        l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
+        l = max((tof(2)-tof(1))*60,exp(logl));      % ensure a sensible result
     elseif strcmpi(covfunc,'m32')
         fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
         nlM = @(l) LogMarginalM32(l,x,y,g1(x),g2(x),sig_m);
@@ -147,7 +147,7 @@ if optimiseHP
         fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',false,'display','none');
         nlM = @(l) LogMarginalM52(l,x,y,g1(x),g2(x),sig_m);
         logl = fminunc(nlM,0,fminopts);
-        l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
+        l = max((tof(2)-tof(1))*30,exp(logl));      % ensure a sensible result
     end
 end
 

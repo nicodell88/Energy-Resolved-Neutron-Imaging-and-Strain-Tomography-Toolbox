@@ -121,11 +121,12 @@ if opts.plot
     Hdata    = plot(tof,nan(size(tof)),'.');
     hold on
     Hfit     = plot(tof,nan(size(tof)),'--');
-    Htitle   = title('Projection');
-    xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}')
+    Htitle   = title('Projection','Interpreter','Latex');
+    xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}','Interpreter','Latex')
     legend('Tr','Edge fit')
     grid minor
     ylim([0 1])
+    hold off
 end
 
 % Initialise Waitbar
