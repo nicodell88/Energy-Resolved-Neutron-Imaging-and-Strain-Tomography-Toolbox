@@ -39,13 +39,20 @@ optionsFit              = optimoptions('lsqcurvefit','Algorithm','levenberg-marq
 optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
+%% calculate index range 
+idx = opts.rangeIdx(1):opts.rangeIdx(2);
+
 %% Initial guess
+% midx = 
+% [~,ind1] = min(abs(max(Tr(idx))*0.9-Tr(idx)))
+% [~,ind2] = min(abs(min(Tr(idx))*1.2-Tr(idx)))
+% tof
 
 p00 = [mean(opts.range),... % Edge location
-    1e-5,... % width
-    1e-5,... % assymetry 
+    5*abs(tof(2)-tof(1)),... % width
+    2*abs(tof(2)-tof(1)),... % assymetry 
     min(Tr),...   %pedistool
-    0.5*(max(Tr)-min(Tr))];     %slope
+    (max(Tr)-min(Tr))];     %slope
 
 if isfield(opts,'t_hkl0')
     p00(1) = opts.t_hkl0;
@@ -63,7 +70,6 @@ if isfield(opts,'C20')
     p00(5) = opts.C20;
 end
 %% Fit edge
-idx = opts.rangeIdx(1):opts.rangeIdx(2);
 fitMe = @(p,x) edgeModel(p,x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
 %% Collect Results
@@ -81,8 +87,8 @@ function [edge_spect] = edgeModel(params,t)
 t_hkl = params(1);      % edge location
 sigma = params(2);      % width (broadening)
 tau = params(3);        % assymetry
-C1  = params(4);        % height
-C2  = params(5);        % slope
+C1  = params(4);        % pedastool
+C2  = params(5);        % height
 
 %% As presented in : Tremsin A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by
