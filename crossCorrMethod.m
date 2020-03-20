@@ -54,7 +54,7 @@ if nargin>3
     end
     
     if ~isfield(opts,'frame')
-        opts.frame = 9;
+        opts.frame = 35;
     end
     if ~isfield(opts,'peakWindow')
         opts.peakWindow = 20;
