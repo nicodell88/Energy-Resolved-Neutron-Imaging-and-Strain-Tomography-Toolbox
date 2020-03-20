@@ -117,10 +117,15 @@ std_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
 
 if opts.plot
+    if strcmpi(opts.method,'5param')
+        plot_idx = opts.rangeIdx(1):opts.rangeIdx(2);
+    else
+        plot_idx = opts.startIdx(1):opts.endIdx(end);
+    end
     Hfig = figure;
-    Hdata    = plot(tof,nan(size(tof)),'.');
+    Hdata    = plot(tof(plot_idx),nan(size(tof(plot_idx))),'.');
     hold on
-    Hfit     = plot(tof,nan(size(tof)),'--');
+    Hfit     = plot(tof(plot_idx),nan(size(tof(plot_idx))),'--');
     Htitle   = title('Projection','Interpreter','Latex');
     xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}','Interpreter','Latex')
     legend('Tr','Edge fit')
@@ -157,8 +162,8 @@ for k = 1:np
         if opts.plot
             msg = sprintf('Projection %d, Measurement %d',k,i);
             Htitle.String = msg;
-            Hdata.YData = Tr{k}(i,:);
-            Hfit.YData  = TrFit_cell{k}(i,:);
+            Hdata.YData = Tr{k}(i,plot_idx);
+            Hfit.YData  = TrFit_cell{k}(i,plot_idx);
             drawnow
         end
     end
