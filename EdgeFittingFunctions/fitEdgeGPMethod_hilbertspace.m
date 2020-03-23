@@ -28,6 +28,8 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod_hilbertspace(Tr,tof,opt
 %       fitinfo.widthathalfheight: the peak width at half height
 %       fitinfo.edgeshape       : the estimated edge shape
 %       fitinfo.gradedgeshape   : the gradient of the estimated edge shape
+%       fitinfo.x_grad          : the x (tof/wavelength) that the gradient
+%                                   is calculated at
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -216,6 +218,13 @@ fitinfo.rms_residual = sqrt(mean((Tr-TrFit).^2));   % root mean square of hte re
 fitinfo.fitqual = fitqual;
 fitinfo.edgeshape = festp;
 fitinfo.gradedgeshape = g;
+fitinfo.x_grad = xt;
+
+if opts.save_samples
+    fitinfo.lambda_samples = sLams; 
+    
+end
+
 half_height = max(g)/2;
 
 [xi,~] = polyxpoly(xt,g,[xt(1);xt(end)],[half_height;half_height]);
