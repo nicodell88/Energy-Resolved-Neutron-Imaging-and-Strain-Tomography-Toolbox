@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod_hilbertspace(Tr,tof,opts)
 %fitEdgeGPMethod fits a bragg-edge using the method presented in:
 %   TODO: Insert Bib entry
 %   TODO: Insert arxiv link when paper is written.
@@ -30,7 +30,6 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod(Tr,tof,opts)
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
-%   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
 % Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
@@ -49,8 +48,9 @@ sig_f   = 1;
 l       = 1e-4;     % GP lengthscale
 ns      = 3000;     % number of samples to draw to compute variance
 nx      = 2500;     % number of points to predict at
-useInterp = true;   % uses an interpolation procedure to reduce the size of matrix inversion
 optimiseHP = false;  % if true optimises the lengthscale for each Transmission spectra
+covfunc = 'se';     % default covariance function
+m_basis = 1000;     % default number of basis functions for hp optimisation
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -65,12 +65,26 @@ if isfield(opts,'b_hkl0')
     b_hkl0 = opts.b_hkl0;
 end
 
+
 %GP
 if isfield(opts,'sig_f')
     sig_f = opts.sig_f;
 end
-if isfield(opts,'l')
+if isfield(opts,'l')        % default lengthscales
     l = opts.l;
+else
+    if strcmpi(covfunc,'se') 
+        l = 0.03;
+    end
+    if strcmpi(covfunc,'m32') 
+        l = 0.18;
+    end
+    if strcmpi(covfunc,'m52')
+        l = 0.09;
+    end
+end
+if isfield(opts,'numberbasis')
+    m_basis = opts.numberbasis;
 end
 if isfield(opts,'ns')
     ns = opts.ns;
@@ -80,26 +94,17 @@ if isfield(opts,'nx')
 end
 if isfield(opts,'GPscheme')
    GPscheme = opts.GPscheme; 
-   if strcmpi(GPscheme,'interp')
-      useInterp = true; 
-   elseif strcmpi(GPscheme,'full')
-       useInterp = false;
-   elseif strcmpi(GPscheme,'hilbertspace')
+   if ~strcmpi(GPscheme,'hilbertspace')
        error('Should not have gotten here')
-   else
-       error('Invalide GP scheme specified, should be one of full, interp, or hilbertspace')
-   end
-end
-
-if isfield(opts,'optimiseHP')
-    optimiseHP = opts.optimiseHP;
+    end
 end
 
 if isfield(opts,'covfunc')
     covfunc = opts.covfunc;
-    if ~strcmpi(covfunc,'se')
-        error('Full and interp GP scheme are only implemented for squared-exponential covariance function')
-    end
+end
+
+if isfield(opts,'optimiseHP')
+    optimiseHP = opts.optimiseHP;
 end
 
 
@@ -118,63 +123,73 @@ g2 = @(x) exp(-(a0 + b0.*x));
 
 y = (Tr - g1(tof)).';
 x = tof.';
-ny = length(tof);
 sig_m = std([Tr(opts.endIdx(1):opts.endIdx(2)) - g2(tof(opts.endIdx(1):opts.endIdx(2))),...
     Tr(opts.startIdx(1):opts.startIdx(2))-g1(tof(opts.startIdx(1):opts.startIdx(2)))]);
+% nh = nx;
+% nx = length(tof); 
+xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
+% xt_interp = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nh)';
+
+
 % Hyperparameters
 if optimiseHP
-    fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
-    nlM = @(l) LogMarginalSE(l,x,y,g1(x),g2(x),sig_m);
-    logl = fminunc(nlM,0,fminopts);
-    l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
+    if strcmpi(covfunc,'se')
+        fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
+        nlM = @(l) LogMarginalSE(l,x,y,g1(x),g2(x),sig_m);
+        logl = fminunc(nlM,0,fminopts);
+        l = max((tof(2)-tof(1))*60,exp(logl));      % ensure a sensible result
+    elseif strcmpi(covfunc,'m32')
+        fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
+        nlM = @(l) LogMarginalM32(l,x,y,g1(x),g2(x),sig_m);
+        logl = fminunc(nlM,0,fminopts);
+        l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
+    elseif strcmpi(covfunc,'m32')
+        fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',false,'display','none');
+        nlM = @(l) LogMarginalM52(l,x,y,g1(x),g2(x),sig_m);
+        logl = fminunc(nlM,0,fminopts);
+        l = max((tof(2)-tof(1))*30,exp(logl));      % ensure a sensible result
+    end
 end
 
-%GP
-if useInterp
-   nh = nx;
-   nx = length(tof); 
-   xt_interp = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nh)';
+
+if strcmpi(covfunc,'se')
+    dlambda = 3.5/l/m_basis;    % 3.5 sigma coverage
+    L = max(pi/2/dlambda,tof(end)-tof(1));
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxSE(l,sig_f,m_basis,L,xt,x);
+elseif strcmpi(covfunc,'m32')
+    dlambda = 30/l/m_basis;    
+    L = max(pi/2/dlambda,tof(end)-tof(1));
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM32(l,sig_f,m_basis,L,xt,x);  
+
+elseif strcmpi(covfunc,'m52')
+    dlambda = 11/l/m_basis;    
+    L = max(pi/2/dlambda,tof(end)-tof(1));
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM52(l,sig_f,m_basis,L,xt,x);  
+
+else 
+    error('Invalid covariance function.')
 end
 
-xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
+Phi_p = Phi;
+Phi = Phi .* (g2(x) - g1(x));
+[~,m]= size(Phi);
+Gamma = [Phi./sig_m;diag(1./sqrt(SLambda))];
+R = triu(qr(Gamma));
+CZ = R(1:m,1:m);
+LSoptsT.TRANSA = true; LSoptsT.UT = true; LSopts.TRANSA = false; LSopts.UT = true;
+v_basis = (linsolve(CZ,linsolve(CZ,Phi'*(y./sig_m.^2),LSoptsT),LSopts));
+festp = Phi_p*v_basis;  %
+g = dPhi_T * v_basis;
 
-K = sig_f^2 * exp(-0.5*(x - x').^2/l^2) .* ((g2(x) - g1(x)) .*(g2(x') - g1(x')));
-Kyy = K + eye(ny)*sig_m^2;
-
-Kfy = sig_f^2 * exp(-0.5*(xt - x').^2/l^2).*(g2(x') - g1(x'));
-dKfy = -(xt - x')/l^2 .* Kfy;
-ddKff = sig_f^2 * (1 - (xt-xt').^2/l^2)/l^2 .* exp(-0.5*(xt - xt').^2/l^2);
-Kfyp = sig_f^2 * exp(-0.5*(x - x').^2/l^2).*(g2(x') - g1(x'));
- 
-C = chol(Kyy,'upper');
-
-festp = Kfyp*(C\(C.'\y));           % estimated edge shape
-
-g = dKfy*(C\(C.'\y));
-
-alpha = (C.'\dKfy');
-V = ddKff- alpha'*alpha;
+% alternatively
+gamma = linsolve(CZ,eye(m),LSoptsT);
+SigV = triu(qr(gamma));
+sv = v_basis + SigV.'*randn(m,ns);      % sample the coefficients
+sg = dPhi_T * sv;
 
 
-
-[sV, p] = chol(V+1e-10*eye(size(V)),'upper');
-if p
-    warning('was not about to use chol')
-    sV = sqrtm(V+1e-10*eye(size(V)));
-    sg = g + sV*randn(nx,ns);     % notice this one is not tranposed (for good reason)
-else
-    sg = g + sV.'*randn(nx,ns);
-end
-
-if useInterp
-    g_interp = interp1(xt,g,xt_interp,'v5cubic');
-    sg_interp = interp1(xt,sg,xt_interp,'v5cubic');
-    [~,Is] = max([g_interp sg_interp]);
-    sLams = xt_interp(Is);
-else
-    [~,Is] = max([g sg]);
-    sLams = xt(Is);
-end
+[~,Is] = max([g sg]);
+sLams = xt(Is);
 
 
 %% Collect Results
@@ -198,6 +213,7 @@ fitinfo.std_residual = std(Tr-TrFit);               % standard deviation of the 
 fitinfo.rms_residual = sqrt(mean((Tr-TrFit).^2));   % root mean square of hte residual
 fitinfo.fitqual = fitqual;
 half_height = max(g)/2;
+
 [xi,~] = polyxpoly(xt,g,[xt(1);xt(end)],[half_height;half_height]);
 if length(xi) == 2
     widthathalfheight = max(xi) - min(xi);
@@ -205,7 +221,8 @@ else
     widthathalfheight = nan;
 end
 fitinfo.widthathalfheight = widthathalfheight;
-    
+
+
 
 
 

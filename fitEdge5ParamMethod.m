@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo] = fitEdge5ParamMethod(Tr,tof,opts)
 %fitEdge5ParamMethod fits a bragg-edge using the method used by: Tremsin,
 %   A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by
@@ -21,6 +21,11 @@ function [edgePos,sigma,TrFit] = fitEdge5ParamMethod(Tr,tof,opts)
 %   - edgePos is the location of the braggEdge
 %   - sigma is the estimated standard deviation
 %   - TrFit is is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the fit
+%       fitinfo.resnorm     : the squared 2 norm of the residual as
+%                               calcualted by lsqcurvefit
+%       fitinfo.edgewidth   : edge width parameter from the attenuation model 
+%       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -34,13 +39,20 @@ optionsFit              = optimoptions('lsqcurvefit','Algorithm','levenberg-marq
 optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
+%% calculate index range 
+idx = opts.rangeIdx(1):opts.rangeIdx(2);
+
 %% Initial guess
+% midx = 
+% [~,ind1] = min(abs(max(Tr(idx))*0.9-Tr(idx)))
+% [~,ind2] = min(abs(min(Tr(idx))*1.2-Tr(idx)))
+% tof
 
 p00 = [mean(opts.range),... % Edge location
-    1e-5,... % width
-    1e-5,... % assymetry 
+    5*abs(tof(2)-tof(1)),... % width
+    2*abs(tof(2)-tof(1)),... % assymetry 
     min(Tr),...   %pedistool
-    0.5*(max(Tr)-min(Tr))];     %slope
+    (max(Tr)-min(Tr))];     %slope
 
 if isfield(opts,'t_hkl0')
     p00(1) = opts.t_hkl0;
@@ -58,22 +70,25 @@ if isfield(opts,'C20')
     p00(5) = opts.C20;
 end
 %% Fit edge
-idx = opts.rangeIdx(1):opts.rangeIdx(2);
 fitMe = @(p,x) edgeModel(p,x);
-[p,~,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
+[p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 sigma = (ci(1,2)-ci(1,1))/4;
 TrFit = fitMe(p,tof);
+
+fitinfo.resnorm = resnorm;
+fitinfo.edgewidth = p(2);
+fitinfo.egdgeassymetry = p(3);
 end
 
 function [edge_spect] = edgeModel(params,t)
 t_hkl = params(1);      % edge location
 sigma = params(2);      % width (broadening)
 tau = params(3);        % assymetry
-C1  = params(4);        % height
-C2  = params(5);        % slope
+C1  = params(4);        % pedastool
+C2  = params(5);        % height
 
 %% As presented in : Tremsin A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by

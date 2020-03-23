@@ -29,7 +29,8 @@ function [deltaD,sigma] = crossCorrMethod(Tr1,Tr2,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 14/01/2020
+%   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
+% Last modified: 20/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 
@@ -54,7 +55,7 @@ if nargin>3
     end
     
     if ~isfield(opts,'frame')
-        opts.frame = 9;
+        opts.frame = 35;
     end
     if ~isfield(opts,'peakWindow')
         opts.peakWindow = 20;

@@ -1,4 +1,4 @@
-function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
+function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
 %FITEDGES Fits Bragg edges to input data.
 %   [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %   Inputs:
@@ -26,11 +26,13 @@ function [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %       - std_cell is a cell array containing corresponding standard
 %       deviation estimates for each result in d_cell.
 %       - TrFit is is the Bragg edge model for each fit evaluated at tof
+%       - fitinfo_cell contains additional fit information
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 14/01/2020
+%   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
+% Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% Inspect Data
@@ -50,7 +52,22 @@ if nargin==3
             case '5param'
                 edgeFit = @(tr,wl,op)fitEdge5ParamMethod(tr,wl,op);
             case 'gp'
-                edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
+                if isfield(opts,'GPscheme')
+                    if ~isfield(opts,'covfunc')
+                        opts.covfunc = 'SE';
+                    end
+                    if strcmpi(opts.GPscheme,'hilbertspace') || ~strcmpi(opts.covfunc,'SE')
+                        if ~strcmpi(opts.covfunc,'SE') && ~strcmpi(opts.GPscheme,'hilbertspace')
+                            warning('%s covariance func can only be used with hilbertspace scheme.',opts.GPscheme)
+                        end
+                        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op); 
+                    elseif strcmpi(opts.GPscheme,'full') || strcmpi(opts.GPscheme,'interp')
+                         edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);              
+                    else
+                        error('%s is not a valid GP scheme, see help fitEdges',opts.GPscheme);
+                    end
+
+                end
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
@@ -100,14 +117,21 @@ std_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
 
 if opts.plot
+    if strcmpi(opts.method,'5param')
+        plot_idx = opts.rangeIdx(1):opts.rangeIdx(2);
+    else
+        plot_idx = opts.startIdx(1):opts.endIdx(end);
+    end
     Hfig = figure;
-    Hdata    = plot(tof,nan(size(tof)),'.');
+    Hdata    = plot(tof(plot_idx),nan(size(tof(plot_idx))),'.');
     hold on
-    Hfit     = plot(tof,nan(size(tof)),'.');
-    Htitle   = title('Projection');
-    xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}')
+    Hfit     = plot(tof(plot_idx),nan(size(tof(plot_idx))),'--');
+    Htitle   = title('Projection','Interpreter','Latex');
+    xlabel('[Wave Length] or \{Time of Flight\} - [\AA] or \{s\}','Interpreter','Latex')
+    legend('Tr','Edge fit')
     grid minor
     ylim([0 1])
+    hold off
 end
 
 % Initialise Waitbar
@@ -125,13 +149,21 @@ for k = 1:np
             return
         end
         % Call edge fitting function
-        [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:)] = edgeFit(Tr{k}(i,:),tof,opts);
+        try
+            [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:),fitinfo_cell{1}(i)] = edgeFit(Tr{k}(i,:),tof,opts);
+        catch e
+            delete(wh)
+            if opts.plot
+               close(Hfig);
+            end
+            error(e.message);
+        end
         % Plot Results
         if opts.plot
             msg = sprintf('Projection %d, Measurement %d',k,i);
             Htitle.String = msg;
-            Hdata.YData = Tr{k}(i,:);
-            Hfit.YData  = TrFit_cell{k}(i,:);
+            Hdata.YData = Tr{k}(i,plot_idx);
+            Hfit.YData  = TrFit_cell{k}(i,plot_idx);
             drawnow
         end
     end
