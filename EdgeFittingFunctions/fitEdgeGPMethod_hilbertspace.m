@@ -26,6 +26,8 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod_hilbertspace(Tr,tof,opt
 %       fitinfo.fitqual         : an estimate of the fit quality given by
 %                                   the radio sig_m / std(residual)
 %       fitinfo.widthathalfheight: the peak width at half height
+%       fitinfo.edgeshape       : the estimated edge shape
+%       fitinfo.gradedgeshape   : the gradient of the estimated edge shape
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -212,6 +214,8 @@ fitinfo.lengthscale = l;                            % store the lengthscale used
 fitinfo.std_residual = std(Tr-TrFit);               % standard deviation of the residual
 fitinfo.rms_residual = sqrt(mean((Tr-TrFit).^2));   % root mean square of hte residual
 fitinfo.fitqual = fitqual;
+fitinfo.edgeshape = festp;
+fitinfo.gradedgeshape = g;
 half_height = max(g)/2;
 
 [xi,~] = polyxpoly(xt,g,[xt(1);xt(end)],[half_height;half_height]);
