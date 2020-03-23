@@ -4,7 +4,7 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 09/03/2020
+% Last modified: 23/03/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ close all
 
 % Toolbox is designed to process fits files with the filename convention "NAME_%03d_%05d.fits"
 %% Options
+if isunix
 options.path		= '/Volumes/Drive 1/04_Projections/*/Corrected/'; %Path including wildcards if needed
 options.filespec	= 'SteelCube_%03d_%05d.fits';	%File name format including type specifiers for indexing projections and time-of-flight
 options.proj_idx	= 1:2;			%Only these projections will be processed
@@ -33,7 +34,15 @@ options.tof_idx 	= 1307:1310;	%Only wavelengths corresponding to these indicies 
 
 options.save_dir	= '../preprocessed';
 options.save_str    = 'steelcube';
+else
+options.path		= 'D:/JPARC JAN 2020/04_Projections/*/Corrected/'; %Path including wildcards if needed
+options.filespec	= 'SteelCube_%03d_%05d.fits';	%File name format including type specifiers for indexing projections and time-of-flight
+options.proj_idx	= 1:2;			%Only these projections will be processed
+options.tof_idx 	= 1307:1310;	%Only wavelengths corresponding to these indicies will be processed
 
+options.save_dir	= '../preprocessed';
+options.save_str    = 'steelcube';
+end
 %% Process Data
 processFitsFiles(options)
 

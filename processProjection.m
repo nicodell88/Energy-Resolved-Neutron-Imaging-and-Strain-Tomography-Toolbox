@@ -24,7 +24,7 @@ function [data] = processProjection(fileNames,pathName,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 16/03/2020
+% Last modified: 23/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 nn = length(fileNames);
