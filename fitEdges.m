@@ -34,7 +34,8 @@ function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
 % Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
-
+addpath ./EdgeFittingFunctions/
+addpath ./utility_functions/
 %% Inspect Data
 assert(numel(tof)==length(tof),'Expected tof to be a Nx1 vector');
 assert(iscell(Tr),'Expected ''Tr'' to be a cell array');
