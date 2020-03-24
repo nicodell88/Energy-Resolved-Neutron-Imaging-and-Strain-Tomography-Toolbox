@@ -19,8 +19,10 @@ function processFitsFiles(opts)
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 % Last modified: 23/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
-addpath ./FitsFileProcessing/
-addpath ./utility_functions/
+
+TBdir = fileparts(mfilename('fullpath'));
+addpath(fullfile(TBdir,'utility_functions'));
+addpath(fullfile(TBdir,'FitsFileProcessing'));
 
 assert(isfield(opts,'path'),	'A file path to the data must be speciefied.')
 assert(isfield(opts,'filespec'),'A file path to the data must be speciefied.')

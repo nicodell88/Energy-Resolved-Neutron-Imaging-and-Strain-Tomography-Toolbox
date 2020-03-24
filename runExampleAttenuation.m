@@ -47,7 +47,7 @@ grid minor
 opts.startRange = [tof(1) tof(150)];    %Fitting left side of edge
 opts.endRange   = [tof(371) tof(end)];  %Fitting right side of edge
 opts.method     = 'attenuation';    %Fitting algorithm
-opts.plot       = true;                 %plot results along the way
+opts.plot       = false;                 %plot results along the way
 
 opts.a00        = 0.5;          %Initial guess for a0
 opts.b00        = 0.5;          %Initial guess for b0
@@ -58,3 +58,5 @@ opts.sigma0     = 0.006;        %Initial guess for gaussian broadening term
 opts.tau0       = 0.008;        %Initial guess for exponential decay term
 
 [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);
+
+

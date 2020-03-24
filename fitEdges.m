@@ -34,8 +34,9 @@ function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
 % Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
-addpath ./EdgeFittingFunctions/
-addpath ./utility_functions/
+TBdir = fileparts(mfilename('fullpath'));
+addpath(fullfile(TBdir,'EdgeFittingFunctions'));
+addpath(fullfile(TBdir,'utility_functions'))
 %% Inspect Data
 assert(numel(tof)==length(tof),'Expected tof to be a Nx1 vector');
 assert(iscell(Tr),'Expected ''Tr'' to be a cell array');
@@ -67,7 +68,8 @@ if nargin==3
                     else
                         error('%s is not a valid GP scheme, see help fitEdges',opts.GPscheme);
                     end
-
+                else
+                    edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);  
                 end
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);

@@ -35,7 +35,7 @@ set(0, 'defaultLineLinewidth',2)
 set(0,'defaultFigureColor','w')
 %% Load Data
 addpath ./data
-addpath ./utility_functions
+% addpath ./utility_functions
 load CubeProj.mat
 %% Plot Data
 figure(1); clf;
