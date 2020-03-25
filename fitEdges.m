@@ -32,7 +32,7 @@ function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
-% Last modified: 18/03/2020
+% Last modified: 25/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 TBdir = fileparts(mfilename('fullpath'));
 addpath(fullfile(TBdir,'EdgeFittingFunctions'));
@@ -51,6 +51,8 @@ if nargin==3
         switch lower(opts.method)
             case 'attenuation'
                 edgeFit = @(tr,wl,op)fitEdgeAttenuationMethod(tr,wl,op);
+            case 'attenuationalt'
+                edgeFit = @(tr,wl,op)fitEdgeAttenuationMethodAlt(tr,wl,op);
             case '5param'
                 edgeFit = @(tr,wl,op)fitEdge5ParamMethod(tr,wl,op);
             case 'gp'
@@ -75,8 +77,10 @@ if nargin==3
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
     else
-        opts.method = 'attenuation';
-        edgeFit = @(tr,wl,op)fitEdgeAttenuationMethod(tr,wl,op);
+        opts.method = 'GP';
+        opts.GPscheme = 'hilbertspace';
+        opts.covfunc = 'M52';
+        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op); 
     end
     %% left and right ranges
     if isfield(opts,'startRange')
