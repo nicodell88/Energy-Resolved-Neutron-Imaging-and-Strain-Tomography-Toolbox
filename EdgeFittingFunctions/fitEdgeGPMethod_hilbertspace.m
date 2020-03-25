@@ -35,7 +35,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod_hilbertspace(Tr,tof,opt
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
-% Last modified: 18/03/2020
+% Last modified: 25/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -109,6 +109,11 @@ end
 
 if isfield(opts,'optimiseHP')
     optimiseHP = opts.optimiseHP;
+end
+if isfield(opts,'save_samples')
+    save_samples = opts.save_samples;
+else
+    save_samples = false;
 end
 
 
@@ -220,9 +225,8 @@ fitinfo.edgeshape = festp;
 fitinfo.gradedgeshape = g;
 fitinfo.x_grad = xt;
 
-if opts.save_samples
-    fitinfo.lambda_samples = sLams; 
-    
+if save_samples
+    fitinfo.lambda_samples = sLams;    
 end
 
 half_height = max(g)/2;
