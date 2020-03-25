@@ -24,7 +24,8 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethodAlt(Tr,tof,opts
 %       opts.b_hkl0 :   Initial guess
 %       opts.t_hkl0 :   Initial guess for edge location
 %       opts.sigma0 :   Initial guess for gaussian broadening term
-%       opts.tau0   :   Initial guess for exponential decay term
+%       opts.alpha  :   Initial guess for exponential rise term
+%       opts.beta   :   Initial guess for exponential decay term
 %
 % Outputs:
 %   - edgePos is the location of the braggEdge
