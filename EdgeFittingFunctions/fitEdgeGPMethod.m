@@ -138,13 +138,16 @@ end
 
 xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
 
-K = sig_f^2 * exp(-0.5*(x - x').^2/l^2) .* ((g2(x) - g1(x)) .*(g2(x') - g1(x')));
-Kyy = K + eye(ny)*sig_m^2;
+% scale input data across range [0,1] for calcultion of covariance matrices
+[xsc,xrange] = scaleInput(x);
+xtsc = (xt - xrange(1))/(xrange(2)-xrange(1));
 
-Kfy = sig_f^2 * exp(-0.5*(xt - x').^2/l^2).*(g2(x') - g1(x'));
-dKfy = -(xt - x')/l^2 .* Kfy;
-ddKff = sig_f^2 * (1 - (xt-xt').^2/l^2)/l^2 .* exp(-0.5*(xt - xt').^2/l^2);
-Kfyp = sig_f^2 * exp(-0.5*(x - x').^2/l^2).*(g2(x') - g1(x'));
+K = sig_f^2 * exp(-0.5*(xsc - xsc').^2/l^2) .* ((g2(x) - g1(x)) .*(g2(x') - g1(x')));
+Kyy = K + eye(ny)*sig_m^2;
+Kfy = sig_f^2 * exp(-0.5*(xtsc - xsc').^2/l^2).*(g2(x') - g1(x'));
+dKfy = -(xtsc - xsc')/l^2 .* Kfy;
+ddKff = sig_f^2 * (1 - (xtsc-xtsc').^2/l^2)/l^2 .* exp(-0.5*(xtsc - xtsc').^2/l^2);
+Kfyp = sig_f^2 * exp(-0.5*(xsc - xsc').^2/l^2).*(g2(x') - g1(x'));
  
 C = chol(Kyy,'upper');
 

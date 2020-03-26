@@ -152,7 +152,7 @@ if optimiseHP
         nlM = @(l) LogMarginalM32(l,x,y,g1(x),g2(x),sig_m);
         logl = fminunc(nlM,0,fminopts);
         l = max((tof(2)-tof(1))*10,exp(logl));      % ensure a sensible result
-    elseif strcmpi(covfunc,'m32')
+    elseif strcmpi(covfunc,'m52')
         fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',false,'display','none');
         nlM = @(l) LogMarginalM52(l,x,y,g1(x),g2(x),sig_m);
         logl = fminunc(nlM,0,fminopts);

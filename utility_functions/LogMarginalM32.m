@@ -2,6 +2,7 @@
 function [logpdf, gradlogpdf] = LogMarginalM32(logl,X,Y,g1,g2,sig_e)
 sig_f = 1;
 l = exp(logl);
+X = scaleInput(X);
 
 % the likelihood model
 N = length(Y);
