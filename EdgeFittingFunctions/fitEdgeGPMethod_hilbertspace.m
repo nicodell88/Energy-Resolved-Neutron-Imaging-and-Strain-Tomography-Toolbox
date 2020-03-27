@@ -209,12 +209,12 @@ TrFit = exp(-a0-b0*tof).*...
 
 % check fit quality
 fitqual = sig_m/std(Tr-TrFit);
-if fitqual > 2
-    warning('The ratio of sig_m/std(residual) is high ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
-end
-if fitqual < 0.1
-    warning('The ratio of sig_m/std(residual) is low ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
-end
+% if fitqual > 2
+%     warning('The ratio of sig_m/std(residual) is high ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
+% end
+% if fitqual < 0.1
+%     warning('The ratio of sig_m/std(residual) is low ( %s), indicating that the data may have been overfit. Consider increasing the lengthscale',num2str(fitqual))
+% end
 
 
 fitinfo.lengthscale = l;                            % store the lengthscale used
