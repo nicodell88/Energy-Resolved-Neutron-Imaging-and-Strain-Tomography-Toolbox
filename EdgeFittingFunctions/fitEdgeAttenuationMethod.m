@@ -72,6 +72,8 @@ end
 if isfield(opts,'tau0')
     p00(3) = opts.tau0;
 end
+
+try
 %% Fit edge
 % 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
 fit1 = @(p,x) exp(-(p(1) + p(2).*x));
@@ -84,6 +86,12 @@ a_hkl = p(1); b_hkl = p(2);
 % 3) now fit the area around the edge
 fit3 = @(p,x) edgeModel([p a0 b0 a_hkl b_hkl],x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
+catch
+   edgePos = NaN;
+   sigma = NaN;
+   TrFit = nan(size(tof));
+   fitinfo.status = 'Bad initial condition';   
+end
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals

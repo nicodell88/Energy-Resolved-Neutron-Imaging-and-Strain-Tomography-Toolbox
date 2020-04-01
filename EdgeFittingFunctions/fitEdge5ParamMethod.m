@@ -70,8 +70,15 @@ if isfield(opts,'C20')
     p00(5) = opts.C20;
 end
 %% Fit edge
+try
 fitMe = @(p,x) edgeModel(p,x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
+catch
+   edgePos = NaN;
+   sigma = NaN;
+   TrFit = nan(size(tof));
+   fitinfo.status = 'Bad initial condition';   
+end
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals

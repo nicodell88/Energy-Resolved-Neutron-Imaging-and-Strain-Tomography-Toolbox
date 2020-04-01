@@ -94,6 +94,7 @@ if isfield(opts,'beta0')
     p00(4) = opts.beta0;
 end
 %% Fit edge
+try
 % 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
 fit1 = @(p,x) exp(-(p(1) + p(2).*x));
 [p,~,~,~,~,~,~] = lsqcurvefit(fit1,[a00;b00],tof(opts.endIdx(1):opts.endIdx(2)),Tr(opts.endIdx(1):opts.endIdx(2)),[],[],optionsFit);
@@ -117,7 +118,12 @@ fit4 = @(p,x) edgeModelAlt([p(1) sig p(2:3) a0 b0 a_hkl b_hkl],x);
 fit4 = @(p,x) edgeModelAlt([p a0 b0 a_hkl b_hkl],x);
 p00 = [p(1) sig p(2:3)];
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit4,p00,tof(opts.startIdx(2):opts.endIdx(1)),Tr(opts.startIdx(2):opts.endIdx(1)),[],[],optionsFit);
-
+catch
+   edgePos = NaN;
+   sigma = NaN;
+   TrFit = nan(size(tof));
+   fitinfo.status = 'Bad initial condition';   
+end
 %% Collect Results
 edgePos = p(1);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
