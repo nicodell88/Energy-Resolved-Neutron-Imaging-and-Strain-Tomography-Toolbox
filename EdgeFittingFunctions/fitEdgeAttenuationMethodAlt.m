@@ -119,13 +119,10 @@ fit4 = @(p,x) edgeModelAlt([p a0 b0 a_hkl b_hkl],x);
 p00 = [p(1) sig p(2:3)];
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit4,p00,tof(opts.startIdx(2):opts.endIdx(1)),Tr(opts.startIdx(2):opts.endIdx(1)),[],[],optionsFit);
 catch
-    edgePos = NaN;
-    sigma = NaN;
-    TrFit = nan(size(tof));
-    fitinfo.resnorm = NaN;
-    fitinfo.edgewidth = NaN;
-    fitinfo.alpha = NaN;
-    fitinfo.beta = NaN;
+   edgePos = NaN;
+   sigma = NaN;
+   TrFit = nan(size(tof));
+   fitinfo.status = 'Bad initial condition';   
 end
 %% Collect Results
 edgePos = p(1);
