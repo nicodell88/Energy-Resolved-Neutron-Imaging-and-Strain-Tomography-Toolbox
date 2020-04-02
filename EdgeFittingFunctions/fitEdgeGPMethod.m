@@ -14,6 +14,8 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod(Tr,tof,opts)
 %       opts.b_hkl0 :   Initial guess
 %       opts.sig_f  :   Squared-Exponential Kernel Hyperparameter, output variance
 %       opts.l      :   Squared-Exponential Kernel Hyperparameter, lengthscale
+%       opts.optimiseHP : if 'all' runs for every edge, if 'none' does not
+%                           run, if 'projection' runs once per projection in batch mode
 %
 % Outputs:
 %   - edgePos is the location of the braggEdge
@@ -50,7 +52,7 @@ l       = 1e-4;     % GP lengthscale
 ns      = 3000;     % number of samples to draw to compute variance
 nx      = 2500;     % number of points to predict at
 useInterp = true;   % uses an interpolation procedure to reduce the size of matrix inversion
-optimiseHP = false;  % if true optimises the lengthscale for each Transmission spectra
+optimiseHP = 'none';  % if true optimises the lengthscale for each Transmission spectra
 
 if isfield(opts,'a00')
     a00 = opts.a00;
@@ -124,7 +126,7 @@ ny = length(tof);
 sig_m = std([Tr(opts.endIdx(1):opts.endIdx(2)) - g2(tof(opts.endIdx(1):opts.endIdx(2))),...
     Tr(opts.startIdx(1):opts.startIdx(2))-g1(tof(opts.startIdx(1):opts.startIdx(2)))]);
 % Hyperparameters
-if optimiseHP
+if strcmpi(optimiseHP,'all')
     fminopts = optimoptions('fminunc','SpecifyObjectiveGradient',true,'display','none');
     nlM = @(l) LogMarginalSE(l,x,y,g1(x),g2(x),sig_m);
     logl = fminunc(nlM,0,fminopts);

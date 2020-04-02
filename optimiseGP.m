@@ -146,7 +146,7 @@ for k = 1:np
 
         g1 = [g1,exp(-(a0 + b0.*tof.')).*exp(-(a_hkl+b_hkl.*tof.'))];
         g2 = [g2,exp(-(a0 + b0.*tof.'))];
-        Y = [Y,tr(end,:).' - g1(:,end)];
+        Y = [Y,Tr{k}(i,:).' - g1(:,end)];
         tr = [tr;Tr{k}(i,:)];
         
         sig_m = std([Tr{k}(i,opts.endIdx(1):opts.endIdx(2)).' - g2(opts.endIdx(1):opts.endIdx(2),end);...
@@ -165,7 +165,7 @@ if isempty(Y)
 end
 
 [~,c] = size(Y);
-if c > 100
+if c > 200
     warning(['About to run optimisation on data from ', num2str(c), ' Bragg-edges.',...
  'This could be very slow, consider passing in a subset of the data.'])
 end
@@ -183,7 +183,9 @@ lengthscale = max((tof(2)-tof(1))*10,exp(logl)); % ensure a sensible result
 
 
 opts.l = lengthscale;
-opts.optimiseHP = false;
+if strcmpi(opts.optimiseHP,'all')
+    opts.optimiseHP = 'none';
+end
 
 disp(['optimisation finished with l = ',num2str(lengthscale)]) 
 

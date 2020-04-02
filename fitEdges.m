@@ -148,6 +148,16 @@ wh = updateWaitbar();
 iter = 0;
 % Loop over projections
 for k = 1:np
+    if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
+        nedges = size(Tr{k},1);
+        if nedges > 200
+            II = randsample(nedges,200);
+            Trbatch{1} = Tr{k}(II,:);
+        else
+            Trbatch{1} = Tr{k};
+        end
+        [~,opts] = optimiseGP(Trbatch,tof,opts);
+    end
     %Loop over measurements in this projection
     for i = 1:size(Tr{k},1)
         iter = iter+1;
