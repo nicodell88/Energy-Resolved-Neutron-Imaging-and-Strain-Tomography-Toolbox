@@ -104,6 +104,7 @@ end
 
 
 %% Fit edge
+try
 %% 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
 fit1 = @(p,x) exp(-(p(1) + p(2).*x));
 [p,~,~,~,~,~,~] = lsqcurvefit(fit1,[a00;b00],tof(opts.endIdx(1):opts.endIdx(2)),Tr(opts.endIdx(1):opts.endIdx(2)),[],[],optionsFit);
@@ -112,6 +113,7 @@ a0 = p(1); b0 = p(2);
 fit2 = @(p,x) exp(-(a0 + b0.*x)).*exp(-(p(1)+p(2).*x));
 [p,~,~,~,~,~,~] = lsqcurvefit(fit2,[a_hkl0;b_hkl0],tof(opts.startIdx(1):opts.startIdx(2)),Tr(opts.startIdx(1):opts.startIdx(2)),[],[],optionsFit);
 a_hkl = p(1); b_hkl = p(2);
+
 %% 3) fit the transition function as a GP
 g1 = @(x) exp(-(a0 + b0.*x)).*exp(-(a_hkl+b_hkl.*x));
 g2 = @(x) exp(-(a0 + b0.*x));
@@ -179,6 +181,17 @@ else
     sLams = xt(Is);
 end
 
+catch e
+    fprintf(1,'Error during fitting process. The message was:\n%s',e.message);
+    edgePos = NaN;
+    sigma = NaN;
+    fitinfo.lengthscale = NaN;                            
+    fitinfo.std_residual = NaN;               
+    fitinfo.rms_residual = NaN;   
+    fitinfo.fitqual = NaN;
+    fitinfo.widthathalfheight = NaN;
+    return 
+end
 
 %% Collect Results
 edgePos = mean(sLams);

@@ -31,7 +31,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdge5ParamMethod(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 15/01/2020
+% Last modified: 02/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -73,7 +73,8 @@ end
 try
 fitMe = @(p,x) edgeModel(p,x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
-catch
+catch e
+    fprintf(1,'Error during fitting process. The message was:\n%s',e.message);
     edgePos = NaN;
     sigma = NaN;
     TrFit = nan(size(tof));

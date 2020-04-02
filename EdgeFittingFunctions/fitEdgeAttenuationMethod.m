@@ -33,7 +33,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethod(Tr,tof,opts)
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>
-% Last modified: 10/01/2020
+% Last modified: 02/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -86,7 +86,8 @@ a_hkl = p(1); b_hkl = p(2);
 % 3) now fit the area around the edge
 fit3 = @(p,x) edgeModel([p a0 b0 a_hkl b_hkl],x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
-catch
+catch e
+    fprintf(1,'Error during fitting process. The message was:\n%s',e.message);
     edgePos = NaN;
     sigma = NaN;
     TrFit = nan(size(tof));

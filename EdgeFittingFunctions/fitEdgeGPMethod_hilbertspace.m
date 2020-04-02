@@ -118,6 +118,7 @@ end
 
 
 %% Fit edge
+try
 %% 1) fit to the far right of the edge where B = 1, so only fit exp([-(a0+b0.*t)])
 fit1 = @(p,x) exp(-(p(1) + p(2).*x));
 [p,~,~,~,~,~,~] = lsqcurvefit(fit1,[a00;b00],tof(opts.endIdx(1):opts.endIdx(2)),Tr(opts.endIdx(1):opts.endIdx(2)),[],[],optionsFit);
@@ -200,6 +201,19 @@ sg = dPhi_T * sv;
 [~,Is] = max([g sg]);
 sLams = xt(Is);
 
+catch e
+    fprintf(1,'Error during fitting process. The message was:\n%s',e.message);
+    edgePos = NaN;
+    sigma = NaN;
+    fitinfo.lengthscale = NaN;                            
+    fitinfo.std_residual = NaN;               
+    fitinfo.rms_residual = NaN;   
+    fitinfo.fitqual = NaN;
+    fitinfo.widthathalfheight = NaN;
+    return 
+    
+    
+end
 
 %% Collect Results
 edgePos = mean(sLams);

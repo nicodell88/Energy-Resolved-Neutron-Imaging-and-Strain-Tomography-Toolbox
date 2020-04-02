@@ -42,7 +42,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethodAlt(Tr,tof,opts
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>
-% Last modified: 25/03/2020
+% Last modified: 02/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -118,7 +118,8 @@ fit4 = @(p,x) edgeModelAlt([p(1) sig p(2:3) a0 b0 a_hkl b_hkl],x);
 fit4 = @(p,x) edgeModelAlt([p a0 b0 a_hkl b_hkl],x);
 p00 = [p(1) sig p(2:3)];
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit4,p00,tof(opts.startIdx(2):opts.endIdx(1)),Tr(opts.startIdx(2):opts.endIdx(1)),[],[],optionsFit);
-catch
+catch e
+    fprintf(1,'Error during fitting process. The message was:\n%s',e.message);
     edgePos = NaN;
     sigma = NaN;
     TrFit = nan(size(tof));

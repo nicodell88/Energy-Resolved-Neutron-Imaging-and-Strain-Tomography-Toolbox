@@ -29,7 +29,7 @@ function [lengthscale,opts] = optimiseGP(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
-% Last modified: 02/04/2020
+% Last modified: 18/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% Inspect Data
@@ -156,17 +156,10 @@ for k = 1:np
                 Tr{k}(i,opts.startIdx(1):opts.startIdx(2)).'-g1(opts.startIdx(1):opts.startIdx(2),end)]);
         Sig_m = [Sig_m;sig_m];
         catch
-           warning(['Was unable to use data from projection ', k, ' edge ', i, ' for optimisatoin due to failure to fit the exponentials']) 
+           warning('Was unable to use data from projection ', k, 'edge ') 
         end
     end
 end
-
-if isempty(Y)
-    warning('Failed to run optimisation')
-    lengthscale = NaN;
-    return
-end
-
 [~,c] = size(Y);
 if c > 100
     warning(['About to run optimisation on data from ', num2str(c), ' Bragg-edges.',...
