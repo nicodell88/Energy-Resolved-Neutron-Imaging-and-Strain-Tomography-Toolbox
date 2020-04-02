@@ -74,10 +74,13 @@ try
 fitMe = @(p,x) edgeModel(p,x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fitMe,p00,tof(idx),Tr(idx),[],[],optionsFit);
 catch
-   edgePos = NaN;
-   sigma = NaN;
-   TrFit = nan(size(tof));
-   fitinfo.status = 'Bad initial condition';   
+    edgePos = NaN;
+    sigma = NaN;
+    TrFit = nan(size(tof));
+    fitinfo.resnorm = NaN;
+    fitinfo.edgewidth = NaN;
+    fitinfo.egdgeassymetry = NaN;
+    return
 end
 %% Collect Results
 edgePos = p(1);
