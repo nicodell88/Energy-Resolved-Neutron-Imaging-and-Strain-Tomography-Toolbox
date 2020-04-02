@@ -134,10 +134,6 @@ Sig_m = [];
 for k = 1:np
     %Loop over measurements in this projection
     for i = 1:size(Tr{k},1)
-        if flag
-            return
-        end
-        tr = [tr;Tr{k}(i,:)];
         
         try
         fit1 = @(p,x) exp(-(p(1) + p(2).*x));
@@ -151,6 +147,7 @@ for k = 1:np
         g1 = [g1,exp(-(a0 + b0.*tof.')).*exp(-(a_hkl+b_hkl.*tof.'))];
         g2 = [g2,exp(-(a0 + b0.*tof.'))];
         Y = [Y,tr(end,:).' - g1(:,end)];
+        tr = [tr;Tr{k}(i,:)];
         
         sig_m = std([Tr{k}(i,opts.endIdx(1):opts.endIdx(2)).' - g2(opts.endIdx(1):opts.endIdx(2),end);...
                 Tr{k}(i,opts.startIdx(1):opts.startIdx(2)).'-g1(opts.startIdx(1):opts.startIdx(2),end)]);
