@@ -90,7 +90,8 @@ catch
    edgePos = NaN;
    sigma = NaN;
    TrFit = nan(size(tof));
-   fitinfo.status = 'Bad initial condition';   
+   fitinfo.status = 'Bad initial condition';
+   return
 end
 %% Collect Results
 edgePos = p(1);
