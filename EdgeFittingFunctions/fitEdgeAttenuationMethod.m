@@ -87,10 +87,13 @@ a_hkl = p(1); b_hkl = p(2);
 fit3 = @(p,x) edgeModel([p a0 b0 a_hkl b_hkl],x);
 [p,resnorm,residual,~,~,~,J] = lsqcurvefit(fit3,p00,tof,Tr,[],[],optionsFit);
 catch
-   edgePos = NaN;
-   sigma = NaN;
-   TrFit = nan(size(tof));
-   fitinfo.status = 'Bad initial condition';   
+    edgePos = NaN;
+    sigma = NaN;
+    TrFit = nan(size(tof));
+    fitinfo.resnorm = NaN;
+    fitinfo.edgewidth = NaN;
+    fitinfo.alpha = NaN;
+    fitinfo.beta = NaN;
 end
 %% Collect Results
 edgePos = p(1);
