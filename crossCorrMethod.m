@@ -108,10 +108,11 @@ dTr2 = dTr2(opts.frame:(end-opts.frame));
 X = Lags*dt;
 
 %% Fit peak
-window = floor(min(opts.peakWindow/2,(length(C)-4)/2));
+window = floor(opts.peakWindow/2);
 [~,idx] = max(C);
 idxFit = (-window:1:window) + idx;
-
+idxFit(idxFit > length(C)) = [];
+idxFit(idxFit < 1) = [];
 
 fit1 = @(p,x) pseudoVoigt([p],x);
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit1,opts.p00,X(idxFit),C(idxFit),[],[],optionsFit);
