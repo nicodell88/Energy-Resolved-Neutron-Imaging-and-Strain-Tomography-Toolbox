@@ -1,4 +1,4 @@
-function [deltaD,sigma] = crossCorrMethod(Tr1,Tr2,tof,opts)
+function [deltaD,sigma,TrFit,fitinfo] = crossCorrMethod(Tr1,Tr2,tof,opts)
 %crossCorrMethod Calculates the "shift" in wavelength or time of flight
 %	between two sets of transmission data. Through an unstressed sample and a
 %	stressed sample. This method is presented in: Ramadhan, R.S., Kockelmann,
@@ -107,6 +107,8 @@ dTr2 = dTr2(opts.frame:(end-opts.frame));
 [C,Lags] = xcorr(dTr1,dTr2);
 X = Lags*dt;
 
+TrFit = nan(size(tof));
+
 %% Fit peak
 window = ceil(min(opts.peakWindow/2,(length(C)-4)/2));
 [~,idx] = max(C);
@@ -120,6 +122,9 @@ ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 %% Extract results
 deltaD = p(2);
 sigma = (ci(2,2)-ci(2,1))/4;
+fitinfo.resnorm = residual;
+% fitinfo.edgewidth = p(2);
+% fitinfo.egdgeassymetry = p(3);
 end
 
 function y = pseudoVoigt(p,x)

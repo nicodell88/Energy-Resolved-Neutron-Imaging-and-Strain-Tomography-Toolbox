@@ -1,4 +1,4 @@
-function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts)
+function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts,d0)
 %FITEDGES Fits Bragg edges to input data.
 %   [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %   Inputs:
@@ -45,7 +45,7 @@ assert(all(Trncols == length(tof)),'Expected the number of columns in each cell 
 
 tof = tof(:).';
 %% Fill opts structure
-if nargin==3
+if nargin>=3
     %% Method
     if isfield(opts,'method')
         switch lower(opts.method)
@@ -73,6 +73,8 @@ if nargin==3
                 else
                     edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);  
                 end
+            case 'crosscorr'
+                    edgeFit = @(tr,wl,op)crossCorrMethod(tr,d0,wl,op); 
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
@@ -106,6 +108,9 @@ if nargin==3
         ntof = length(tof);
         opts.rangeIdx     = [round(0.35*ntof) round(0.65*ntof)];
     end
+    if ~isfield(opts,'plot')
+        opts.plot =false;
+    end
 else
     opts.method = 'attenuation';
     edgeFit = @(tr,wl,op)fitEdgeAttenuation(tr,wl,op);
@@ -126,6 +131,7 @@ TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
 if opts.plot
     if strcmpi(opts.method,'5param')
         plot_idx = opts.rangeIdx(1):opts.rangeIdx(2);
+    elseif strcmpi(opts.method,'crosscorr')
     else
         plot_idx = opts.startIdx(1):opts.endIdx(end);
     end

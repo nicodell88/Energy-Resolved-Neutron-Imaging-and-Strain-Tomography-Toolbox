@@ -39,6 +39,7 @@ addpath ./utility_functions
 load    corr_paper_data.mat
 
 %% Fit Bragg-Edge
+opts.method     = 'crosscorr';
 opts.order      = 3;            %polynomial order of Savitzky-Golay
 opts.frame      = 9;            %frame-length for Savitzky-Golay (must be Odd)
 opts.peakWindow = 20;           %window for peak fitting
@@ -54,9 +55,11 @@ opts.p00 = [... %Pseudo-Voigt function params
 %% Fit Edges
 dd      = nan(15,1);
 sigma   = nan(15,1);
-for i =1:15
-    [dd(i),sigma(i)] = crossCorrMethod(Tr(:,i),d0_al,lambda,opts);
-end
+
+%     [dd(i),sigma(i),stuff,things] = crossCorrMethod(Tr(:,i),d0_al,lambda,opts);
+      [dd_cell,sigma_cell,stuff,things] = fitEdges({Tr.'},lambda,opts,d0_al.');
+
+dd = dd_cell{1}
 %% Plot Results
 figure(3); clf;
 errorbar(dist,dd,sigma)
