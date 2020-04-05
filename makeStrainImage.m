@@ -1,4 +1,4 @@
-function [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts)
+function [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts,d0Tr)
 %MAKESTRAINIMAGE Generates a strain-image from a single projection
 %   [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts)
 %   Inputs:
@@ -147,7 +147,7 @@ for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due
         n_pix = length(i_inds)*length(j_inds);
         
         indicator_macro(i,j)    = sum(~isnan(opts.mask(i_inds,j_inds)),'all') ...
-                                    /numel(opts.mask(i_inds,j_inds)) > (1-opts.Thresh);
+            /numel(opts.mask(i_inds,j_inds)) > (1-opts.Thresh);
         
         if ~indicator_macro(i,j)
             continue
@@ -178,9 +178,9 @@ for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due
                 indicator_macro(i,j) = 0;
             end
             PI = [PI;tmp];
-  
+            
         end
-    
+        
     end
 end
 OB_cell = {OBAve(~isnan(PI),:)};
@@ -189,25 +189,33 @@ Proj_cell = {PAve(~isnan(PI),:)};
 Tr_cell = {[Proj_cell{1}]./[OB_cell{1}]};
 
 %% Fit Bragg Edges
-[d_cell,std_cell,~] = fitEdges(Tr_cell,Proj.tof,opts.BraggOpts);
+if exist('d0Tr','var')
+    [d_cell,std_cell,~,~,opts.BraggOpts] = fitEdges(Tr_cell,Proj.tof,opts.BraggOpts,d0Tr);
+else
+    [d_cell,std_cell,~,~,opts.BraggOpts] = fitEdges(Tr_cell,Proj.tof,opts.BraggOpts);
+end
 %% Shuffle Data, produce plots
 idx = find(logical(indicator_macro));
 StrainImage = nan(size(indicator_macro));
 SigmaImage  = nan(size(indicator_macro));
 
-StrainImage(idx) = (d_cell{1}-opts.d0)/opts.d0;
+if strcmpi(opts.BraggOpts.method,'crosscorr')
+    StrainImage(idx) = (d_cell{1})/opts.d0;
+else
+    StrainImage(idx) = (d_cell{1}-opts.d0)/opts.d0;
+end
 
 % SigmaImage(idx)  = std_cell{1}/opts.d0; %cheating
 
 if ~isfield(opts,'sigma_d0')
-warning('A standard deviation for d0 has not been supplied and the minimum of the confidence intervals from the fitting procedure has been used.')
+    warning('A standard deviation for d0 has not been supplied and the minimum of the confidence intervals from the fitting procedure has been used.')
     sigmad0 = min(std_cell{1});
 else
-    sigmad0 = opts.sigma_d0;    
+    sigmad0 = opts.sigma_d0;
 end
 
 SigmaImage(idx) = sqrt(...
-(1/opts.d0)^2*std_cell{1}.^2 + (-d_cell{1}*(opts.d0^(-2))).^2 * sigmad0^2 ...
-);
+    (1/opts.d0)^2*std_cell{1}.^2 + (-d_cell{1}*(opts.d0^(-2))).^2 * sigmad0^2 ...
+    );
 
 end

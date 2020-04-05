@@ -1,4 +1,4 @@
-function [d_cell,std_cell,TrFit_cell,fitinfo_cell] = fitEdges(Tr,tof,opts,d0)
+function [d_cell,std_cell,TrFit_cell,fitinfo_cell,opts] = fitEdges(Tr,tof,opts,d0)
 %FITEDGES Fits Bragg edges to input data.
 %   [d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts)
 %   Inputs:
