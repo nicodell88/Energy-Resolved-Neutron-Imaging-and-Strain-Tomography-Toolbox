@@ -57,9 +57,9 @@ dd      = nan(15,1);
 sigma   = nan(15,1);
 
 %     [dd(i),sigma(i),stuff,things] = crossCorrMethod(Tr(:,i),d0_al,lambda,opts);
-      [dd_cell,sigma_cell,stuff,things] = fitEdges({Tr.'},lambda,opts,d0_al.');
+      [dd_cell,sigma_cell] = fitEdges({Tr.'},lambda,opts,d0_al.');
 
-dd = dd_cell{1}
+dd = dd_cell{1};
 %% Plot Results
 figure(3); clf;
 errorbar(dist,dd,sigma)

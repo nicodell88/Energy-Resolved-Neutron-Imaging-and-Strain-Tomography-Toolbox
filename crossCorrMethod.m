@@ -33,6 +33,10 @@ function [deltaD,sigma,TrFit,fitinfo] = crossCorrMethod(Tr1,Tr2,tof,opts)
 % Last modified: 20/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
+Tr1 = Tr1 - mean(Tr1(1:20));
+Tr2 = Tr2 - mean(Tr2(1:20));
+M = mean(Tr2(end-20:end))/mean(Tr1(end-20:end));
+Tr1 = Tr1*M;
 
 Tr1 = Tr1(:);
 Tr2 = Tr2(:);
@@ -105,7 +109,7 @@ dTr2 = dTr2(opts.frame:(end-opts.frame));
 
 %% Calculate cross correlation
 [C,Lags] = xcorr(dTr1,dTr2);
-X = Lags*dt;
+X = Lags*dt*500;
 
 TrFit = nan(size(tof));
 
@@ -119,9 +123,18 @@ fit1 = @(p,x) pseudoVoigt([p],x);
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit1,opts.p00,X(idxFit),C(idxFit),[],[],optionsFit);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 
+figure(2)
+clf
+plot(X(idxFit),C(idxFit))
+hold on
+x = X(idxFit);
+y = fit1(p,x);
+plot(x,y)
+
+% pause
 %% Extract results
-deltaD = p(2);
-sigma = (ci(2,2)-ci(2,1))/4;
+deltaD = p(2)/500;
+sigma = (ci(2,2)-ci(2,1))/4/500;
 fitinfo.resnorm = residual;
 % fitinfo.edgewidth = p(2);
 % fitinfo.egdgeassymetry = p(3);
