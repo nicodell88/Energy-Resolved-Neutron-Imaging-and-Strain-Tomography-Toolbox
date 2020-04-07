@@ -69,7 +69,7 @@ if nargin>3
         opts.p00 = [  ...
             15.2407     %y0
             0.0         %xc
-            1.8534      %log(A)
+            0      %log(A)
             -4.1025     %log(Wg)
             -3.5159     %log(Wl)
             0.0876];    %log(Mu)
@@ -83,7 +83,7 @@ else
     opts.p00 = [  ...
         15.2407     %y0
         0.0         %xc
-        1.8534      %log(A)
+        0      %log(A)
         -4.1025     %log(Wg)
         -3.5159     %log(Wl)
         0.0876];    %log(Mu)
@@ -108,7 +108,7 @@ dTr1 = dTr1(opts.frame:(end-opts.frame));
 dTr2 = dTr2(opts.frame:(end-opts.frame));
 
 %% Calculate cross correlation
-[C,Lags] = xcorr(dTr1,dTr2);
+[C,Lags] = xcorr(dTr1,dTr2,[],'normalized');
 X = Lags*dt*500;
 
 TrFit = nan(size(tof));

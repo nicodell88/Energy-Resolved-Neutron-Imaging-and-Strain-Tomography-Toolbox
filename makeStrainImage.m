@@ -80,7 +80,7 @@ switch lower(opts.supplyMask)
         edge(isinf(edge)) = 0;
         opts.mask = edge>opts.maskThresh;
     case 'supply'
-        assert(isfield(opt,'mask'),'Mask must be supplied if opts.supplyMask = ''supply''')
+        assert(isfield(opts,'mask'),'Mask must be supplied if opts.supplyMask = ''supply''')
     case 'gui'
         %% Obtain mask from user
         [~,opts.startIdx] = min((OB.tof(:).'-opts.rangeLeft(:)).^2,[],2);
