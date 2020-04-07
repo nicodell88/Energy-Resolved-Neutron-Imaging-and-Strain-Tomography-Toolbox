@@ -17,7 +17,7 @@ function edges = getEdges(projPath,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 15/01/2020
+% Last modified: 07/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 % Grab data files containing "proj"
@@ -41,12 +41,16 @@ nProj     = length(opts.proj_idx);
 % Initialise edges
 edges = nan(nPixRow,nPixCol,nProj);
 
-wh = updateWaitbar();
+
+delete(findall(0,'tag','TMWWaitbar'));
+wh      = waitbar(0,'calculating edge height', ...
+    'Name', 'Bragg Edge Progress Bar', ...
+    'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
 for i = 1:nProj
-    [wh,flag] = updateWaitbar(i,nProj,wh);
-    if flag
+    waitbar(i/nProj,wh); % Update waitbar
+    if getappdata(wh,'cancelling')
         warning('User cancelled operation');
-        return
+        break
     end
     
     str = sprintf(opts.fmt,opts.proj_idx(i));
@@ -66,11 +70,11 @@ for i = 1:nProj
     edges(:,:,i) = log(Iright) -log(I0right) + log(I0left) - log(ILeft);
     
     
-%     before_edge = mean(Proj.im_stack(:,:,leftIdx(1) :leftIdx(2) ),3);
-%     after_edge  = mean(Proj.im_stack(:,:,rightIdx(1):rightIdx(2)),3);
+    %     before_edge = mean(Proj.im_stack(:,:,leftIdx(1) :leftIdx(2) ),3);
+    %     after_edge  = mean(Proj.im_stack(:,:,rightIdx(1):rightIdx(2)),3);
     
-%    edge = log(mean(Tr(:,:,opts.endIdx(1):opts.endIdx(2)),3))-log(mean(Tr(:,:,opts.startIdx(1):opts.startIdx(2)),3));
-%     edges(:,:,i) = log(after_edge) - log(before_edge);
+    %    edge = log(mean(Tr(:,:,opts.endIdx(1):opts.endIdx(2)),3))-log(mean(Tr(:,:,opts.startIdx(1):opts.startIdx(2)),3));
+    %     edges(:,:,i) = log(after_edge) - log(before_edge);
     
 end
 delete(wh);
