@@ -137,7 +137,7 @@ OB_masked   = OB.im_stack   .*opts.mask;
 PAve = [];
 OBAve = [];
 PI = [];
-
+Lave = [];
 for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due to mixed indexing
     for i = 1:(floor(nPixRow/opts.nPix))
         
@@ -172,6 +172,9 @@ for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due
             
             PAve    = [PAve;squeeze(nanmean(Proj_sec,1))];
             OBAve   = [OBAve;squeeze(nanmean(OB_sec,1))];
+            edgeInd = sub2ind(size(edge),I,J);
+            Lave    = [Lave;nanmean(edge(edgeInd))] ;
+            
             tmp = mean(I(~isnan(Proj_sec(:,1))));
             
             if isnan(tmp)
@@ -188,6 +191,8 @@ Proj_cell = {PAve(~isnan(PI),:)};
 
 Tr_cell = {[Proj_cell{1}]./[OB_cell{1}]};
 
+L_cell = {Lave(~isnan(PI),:)};
+
 %% Fit Bragg Edges
 if exist('d0Tr','var')
     [d_cell,std_cell,~,~,opts.BraggOpts] = fitEdges(Tr_cell,Proj.tof,opts.BraggOpts,d0Tr);
@@ -201,11 +206,31 @@ SigmaImage  = nan(size(indicator_macro));
 
 if strcmpi(opts.BraggOpts.method,'crosscorr')
     StrainImage(idx) = (d_cell{1})/opts.d0;
+    
 else
     StrainImage(idx) = (d_cell{1}-opts.d0)/opts.d0;
 end
 
-% SigmaImage(idx)  = std_cell{1}/opts.d0; %cheating
+SigmaImage(idx)  = std_cell{1}/opts.d0; %cheating
+
+
+%% Linear dependence on length... Not yet characterised for 2020 data.
+poly = [0.00010551, 4.1517];
+
+d0s = polyval(poly,L_cell{1} * (0.017/1.6335) );%conversion from attenuation map to height map done using measurements from projection 1 with irradiated lengths of 17mm
+
+trig_delay = 1.243e-5; % [S]
+% From J-PARC calibration sample
+source_dist = 17.7971; % [m]
+% Fundamental Parameters of the Universe
+plank = 6.62607004e-34; % [m^2 kg /s]
+neutron_mass = 1.6749274e-27; % [kg]
+
+% Calculate the wavelengths
+lambda = plank/neutron_mass/source_dist*(d_cell{1}-trig_delay)*1e10;
+
+
+StrainImage(idx) =(lambda-d0s)./d0s;
 
 if ~isfield(opts,'sigma_d0')
     warning('A standard deviation for d0 has not been supplied and the minimum of the confidence intervals from the fitting procedure has been used.')
@@ -217,5 +242,13 @@ end
 SigmaImage(idx) = sqrt(...
     (1/opts.d0)^2*std_cell{1}.^2 + (-d_cell{1}*(opts.d0^(-2))).^2 * sigmad0^2 ...
     );
+
+
+%% Returning other things as outputs
+opts.d0Image =  nan(size(StrainImage));
+opts.d0Image(idx) = d0s;
+
+opts.dImage = nan(size(StrainImage));
+opts.dImage(idx) = lambda;
 
 end
