@@ -80,6 +80,10 @@ switch lower(opts.supplyMask)
         edge(isinf(edge)) = 0;
         opts.mask = edge>opts.maskThresh;
     case 'supply'
+        [~,opts.startIdx] = min((OB.tof(:).'-opts.rangeLeft(:)).^2,[],2);
+        [~,opts.endIdx] = min((OB.tof(:).'-opts.rangeRight(:)).^2,[],2);
+        edge = log(mean(Tr(:,:,opts.endIdx(1):opts.endIdx(2)),3))-log(mean(Tr(:,:,opts.startIdx(1):opts.startIdx(2)),3));
+        edge(isinf(edge)) = 0;
         assert(isfield(opts,'mask'),'Mask must be supplied if opts.supplyMask = ''supply''')
     case 'gui'
         %% Obtain mask from user
@@ -217,7 +221,7 @@ SigmaImage(idx)  = std_cell{1}/opts.d0; %cheating
 %% Linear dependence on length... Not yet characterised for 2020 data.
 poly = [0.00010551, 4.1517];
 
-d0s = polyval(poly,L_cell{1} * (0.017/1.6335) );%conversion from attenuation map to height map done using measurements from projection 1 with irradiated lengths of 17mm
+d0s = polyval(poly,1e3*L_cell{1} * (0.017/1.6335) );%conversion from attenuation map to height map done using measurements from projection 1 with irradiated lengths of 17mm
 
 trig_delay = 1.243e-5; % [S]
 % From J-PARC calibration sample
@@ -229,8 +233,12 @@ neutron_mass = 1.6749274e-27; % [kg]
 % Calculate the wavelengths
 lambda = plank/neutron_mass/source_dist*(d_cell{1}-trig_delay)*1e10;
 
+if strcmpi(opts.BraggOpts.method,'crosscorr')
+    StrainImage(idx) =(lambda-d0s)./d0s;
+else
+    StrainImage(idx) =(lambda-d0s)./d0s;
+end
 
-StrainImage(idx) =(lambda-d0s)./d0s;
 
 if ~isfield(opts,'sigma_d0')
     warning('A standard deviation for d0 has not been supplied and the minimum of the confidence intervals from the fitting procedure has been used.')
