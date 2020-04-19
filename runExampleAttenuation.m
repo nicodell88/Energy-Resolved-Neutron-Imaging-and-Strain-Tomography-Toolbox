@@ -57,6 +57,8 @@ opts.t_hkl0     = tof(250);     %Initial guess for edge location
 opts.sigma0     = 0.006;        %Initial guess for gaussian broadening term
 opts.tau0       = 0.008;        %Initial guess for exponential decay term
 
-[d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);
+% [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);
 
-
+opts.Par = true;
+% [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr(1),tof,opts);
+[d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);

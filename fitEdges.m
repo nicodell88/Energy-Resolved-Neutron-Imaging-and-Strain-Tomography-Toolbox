@@ -64,17 +64,17 @@ if nargin>=3
                         if ~strcmpi(opts.covfunc,'SE') && ~strcmpi(opts.GPscheme,'hilbertspace')
                             warning('%s covariance func can only be used with hilbertspace scheme.',opts.GPscheme)
                         end
-                        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op); 
+                        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op);
                     elseif strcmpi(opts.GPscheme,'full') || strcmpi(opts.GPscheme,'interp')
-                         edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);              
+                        edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
                     else
                         error('%s is not a valid GP scheme, see help fitEdges',opts.GPscheme);
                     end
                 else
-                    edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);  
+                    edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
                 end
             case 'crosscorr'
-                    edgeFit = @(tr,wl,op)crossCorrMethod(tr,d0,wl,op); 
+                edgeFit = @(tr,wl,op)crossCorrMethod(tr,d0,wl,op);
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
@@ -82,7 +82,7 @@ if nargin>=3
         opts.method = 'GP';
         opts.GPscheme = 'hilbertspace';
         opts.covfunc = 'M52';
-        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op); 
+        edgeFit = @(tr,wl,op)fitEdgeGPMethod_hilbertspace(tr,wl,op);
     end
     %% left and right ranges
     if isfield(opts,'startRange')
@@ -111,6 +111,9 @@ if nargin>=3
     if ~isfield(opts,'plot')
         opts.plot =false;
     end
+    if ~isfield(opts,'Par')
+        opts.Par = false;
+    end
 else
     opts.method = 'attenuation';
     edgeFit = @(tr,wl,op)fitEdgeAttenuation(tr,wl,op);
@@ -127,8 +130,9 @@ np = numel(Tr); %number of projections
 d_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 std_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
+fitinfo_cell= cellfun(@(x) repmat(struct(),size(x,1),1), Tr, 'UniformOutput',false);
 
-if opts.plot
+if opts.plot && ~opts.Par
     if strcmpi(opts.method,'5param')
         plot_idx = opts.rangeIdx(1):opts.rangeIdx(2);
     elseif strcmpi(opts.method,'crosscorr')
@@ -147,53 +151,129 @@ if opts.plot
     hold off
 end
 
-% Initialise Waitbar
+
 [Cnrows,~] = cellfun(@size, Tr);
 nAll = sum(Cnrows);
-wh = updateWaitbar();
-iter = 0;
-% Loop over projections
-for k = 1:np
-    if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
-        nedges = size(Tr{k},1);
-        if nedges > 200
-            II = randsample(nedges,200);
-            Trbatch{1} = Tr{k}(II,:);
-        else
-            Trbatch{1} = Tr{k};
-        end
-        [~,opts] = optimiseGP(Trbatch,tof,opts);
-    end
-    %Loop over measurements in this projection
-    for i = 1:size(Tr{k},1)
-        iter = iter+1;
-        [wh,flag] = updateWaitbar(iter,nAll,wh);
-        if flag
-            return
-        end
-        % Call edge fitting function
-        try
-            [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:),fitinfo_cell{1}(i)] = edgeFit(Tr{k}(i,:),tof,opts);
-        catch e
-            delete(wh)
-            if opts.plot
-               close(Hfig);
+
+if ~opts.Par %no parfor
+    % Initialise Waitbar
+    wh = updateWaitbar();
+    iter = 0;
+    % Loop over projections
+    for k = 1:np
+        if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
+            nedges = size(Tr{k},1);
+            if nedges > 200
+                II = randsample(nedges,200);
+                Trbatch{1} = Tr{k}(II,:);
+            else
+                Trbatch{1} = Tr{k};
             end
-            error(e.message);
+            [~,opts] = optimiseGP(Trbatch,tof,opts);
         end
-        % Plot Results
-        if opts.plot
-            msg = sprintf('Projection %d, Measurement %d',k,i);
-            Htitle.String = msg;
-            Hdata.YData = Tr{k}(i,plot_idx);
-            Hfit.YData  = TrFit_cell{k}(i,plot_idx);
-            drawnow
+        %Loop over measurements in this projection
+        for i = 1:size(Tr{k},1)
+            iter = iter+1;
+            [wh,flag] = updateWaitbar(iter,nAll,wh);
+            if flag
+                return
+            end
+            % Call edge fitting function
+            try
+                [d_cell{k}(i),std_cell{k}(i),TrFit_cell{k}(i,:),~] = edgeFit(Tr{k}(i,:),tof,opts);
+            catch e
+                delete(wh)
+                if opts.plot
+                    close(Hfig);
+                end
+                error(e.message);
+            end
+            % Plot Results
+            if opts.plot
+                msg = sprintf('Projection %d, Measurement %d',k,i);
+                Htitle.String = msg;
+                Hdata.YData = Tr{k}(i,plot_idx);
+                Hfit.YData  = TrFit_cell{k}(i,plot_idx);
+                drawnow
+            end
         end
     end
-end
-delete(wh)
-if opts.plot
-   close(Hfig);
-end
-end
+    delete(wh)
+    if opts.plot
+        close(Hfig);
+    end
+elseif opts.Par &&  np==1 %par for single proj
+        k=1;%only 1 projection
+        if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
+            nedges = size(Tr{k},1);
+            if nedges > 200
+                II = randsample(nedges,200);
+                Trbatch{1} = Tr{k}(II,:);
+            else
+                Trbatch{1} = Tr{k};
+            end
+            [~,opts] = optimiseGP(Trbatch,tof,opts);
+        end
+        %Loop over measurements in this projection
+        nEdge = size(Tr{k},1);
+        
+        dTemp = nan(nEdge,1);
+        stdTemp = nan(nEdge,1);
+        trFitTemp = nan(size(Tr{k}));
+        fitInfoTemp = repmat(struct(),nEdge,1);
+        parfor i = 1:nEdge
+            % Call edge fitting function
+            try
+%                     [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
+                  [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = edgeFit(Tr{k}(i,:),tof,opts);
+%                 fitInfoTemp(i) = fitInfoTemptmp;
+            catch e
+%                 error(e.message);
+            rethrow(e)
+            end
+            
+        end
+        d_cell{k}       = dTemp;
+        std_cell{k}     = stdTemp;
+        TrFit_cell{k}   = trFitTemp;
+%         fitinfo_cell{k} = fitInfoTemp;
+else %par for multipl proj
+    parfor k = 1:np
+%         if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
+%             nedges = size(Tr{k},1);
+%             if nedges > 200
+%                 II = randsample(nedges,200);
+%                 Trbatch{1} = Tr{k}(II,:);
+%             else
+%                 Trbatch{1} = Tr{k};
+%             end
+%             [~,opts] = optimiseGP(Trbatch,tof,opts);
+%         end
+        %Loop over measurements in this projection
+        nEdge = size(Tr{k},1);
+        
+        dTemp = nan(nEdge,1);
+        stdTemp = nan(nEdge,1);
+        trFitTemp = nan(size(Tr{k}));
+        fitInfoTemp = repmat(struct(),nEdge,1);
+        for i = 1:nEdge
+            % Call edge fitting function
+            try
+%                 [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
+                [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = edgeFit(Tr{k}(i,:),tof,opts);
+%                 fitInfoTemp(i) = fitInfoTemptmp;
+            catch e
+%                 error(e.message);
+            rethrow(e)
+            end
+            
+        end
+        d_cell{k}       = dTemp;
+        std_cell{k}     = stdTemp;
+        TrFit_cell{k}   = trFitTemp;
+%         fitinfo_cell{k} = fitInfoTemp;
+    end
+end%if
+
+end%function
 

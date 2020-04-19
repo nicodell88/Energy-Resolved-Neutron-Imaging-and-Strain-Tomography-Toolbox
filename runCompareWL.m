@@ -61,9 +61,10 @@ opts.sigma0  	= 5e-3;        %Initial guess for gaussian broadening term
 opts.tau0    	= 5e-3;        %Initial guess for exponential decay term
 %% GP
 opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
-opts.l      = 3e-2;         %Squared-Exponential Kernel Hyperparameter, lengthscale
+opts.l      = 0.02;         %Squared-Exponential Kernel Hyperparameter, lengthscale
 opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
 opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
+opts.optimiseHP = 'none';
 
 testProj = {Tr{1}(200,:)};
 opts.method     = 'attenuation';    %Fitting algorithm
