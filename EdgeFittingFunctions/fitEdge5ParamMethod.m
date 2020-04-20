@@ -31,7 +31,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdge5ParamMethod(Tr,tof,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 02/04/2020
+% Last modified: 20/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -58,7 +58,7 @@ if isfield(opts,'t_hkl0')
     p00(1) = opts.t_hkl0;
 end
 if isfield(opts,'sigma0')
-    p00(2) = opts.sigma0;
+    p00(2) = log(opts.sigma0);
 end
 if isfield(opts,'tau0')
     p00(3) = opts.tau0;
@@ -96,7 +96,7 @@ end
 
 function [edge_spect] = edgeModel(params,t)
 t_hkl = params(1);      % edge location
-sigma = params(2);      % width (broadening)
+sigma = exp(params(2));      % width (broadening)
 tau = params(3);        % assymetry
 C1  = params(4);        % pedastool
 C2  = params(5);        % height

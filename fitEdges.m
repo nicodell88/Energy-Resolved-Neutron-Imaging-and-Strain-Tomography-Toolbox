@@ -32,7 +32,7 @@ function [d_cell,std_cell,TrFit_cell,fitinfo_cell,opts] = fitEdges(Tr,tof,opts,d
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
-% Last modified: 25/03/2020
+% Last modified: 20/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 TBdir = fileparts(mfilename('fullpath'));
 addpath(fullfile(TBdir,'EdgeFittingFunctions'));
@@ -186,7 +186,8 @@ if ~opts.Par %no parfor
                 if opts.plot
                     close(Hfig);
                 end
-                error(e.message);
+%                 error(e.message);
+                 rethrow(e)
             end
             % Plot Results
             if opts.plot
