@@ -36,7 +36,7 @@ function [d_cell,std_cell,TrFit_cell,fitinfo_cell,opts] = fitEdges(Tr,tof,opts,d
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 TBdir = fileparts(mfilename('fullpath'));
 addpath(fullfile(TBdir,'EdgeFittingFunctions'));
-addpath(fullfile(TBdir,'utility_functions'))
+addpath(genpath(fullfile(TBdir,'utility_functions')))
 %% Inspect Data
 assert(numel(tof)==length(tof),'Expected tof to be a Nx1 vector');
 assert(iscell(Tr),'Expected ''Tr'' to be a cell array');
@@ -221,7 +221,12 @@ elseif opts.Par &&  np==1 %par for single proj
         stdTemp = nan(nEdge,1);
         trFitTemp = nan(size(Tr{k}));
         fitInfoTemp = repmat(struct(),nEdge,1);
+        
+        % Setup par for waitbar
+        ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges'); 
+        
         parfor i = 1:nEdge
+            ppm.increment();
             % Call edge fitting function
             try
 %                     [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
@@ -238,6 +243,7 @@ elseif opts.Par &&  np==1 %par for single proj
         TrFit_cell{k}   = trFitTemp;
 %         fitinfo_cell{k} = fitInfoTemp;
 else %par for multipl proj
+    ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges'); 
     parfor k = 1:np
 %         if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
 %             nedges = size(Tr{k},1);
@@ -257,6 +263,7 @@ else %par for multipl proj
         trFitTemp = nan(size(Tr{k}));
         fitInfoTemp = repmat(struct(),nEdge,1);
         for i = 1:nEdge
+            ppm.increment();
             % Call edge fitting function
             try
 %                 [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
