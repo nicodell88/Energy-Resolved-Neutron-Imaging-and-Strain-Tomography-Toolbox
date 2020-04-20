@@ -234,10 +234,12 @@ elseif opts.Par &&  np==1 %par for single proj
 %                 fitInfoTemp(i) = fitInfoTemptmp;
             catch e
 %                 error(e.message);
+            delete(ppm);
             rethrow(e)
             end
             
         end
+        delete(ppm);
         d_cell{k}       = dTemp;
         std_cell{k}     = stdTemp;
         TrFit_cell{k}   = trFitTemp;
@@ -271,6 +273,7 @@ else %par for multipl proj
 %                 fitInfoTemp(i) = fitInfoTemptmp;
             catch e
 %                 error(e.message);
+            delete(ppm);
             rethrow(e)
             end
             
@@ -280,6 +283,7 @@ else %par for multipl proj
         TrFit_cell{k}   = trFitTemp;
 %         fitinfo_cell{k} = fitInfoTemp;
     end
+    delete(ppm);
 end%if
 
 end%function

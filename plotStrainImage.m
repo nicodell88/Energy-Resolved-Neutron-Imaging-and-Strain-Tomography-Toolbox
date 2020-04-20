@@ -8,7 +8,7 @@ function plotStrainImage(StrainImage,SigmaImage,opts)
 %       deviation of the
 %       - opts is a structure containing.
 %           opts.figNum :   Figure number used for plotting.
-%           opts.nPix   :   Side length of macro-pixels.
+%           opts.nRes   :   Side length of macro-pixels.
 %   Outputs:
 %       - None.
 %
@@ -65,13 +65,13 @@ ChangeTicks(H2)
 %% Change Ticks
     function ChangeTicks(HH)
         ticks=get(HH,'YTick');%retrieve current ticks
-        ticks=ticks*opts.nPix;%multiply
+        ticks=ticks*opts.nRes;%multiply
         ticks = num2cell(ticks);
         ticks=cellfun(@num2str,ticks,'UniformOutput',false);%convert to cellstr
         set(HH,'YTickLabels',ticks)%set new tick labels
         
         ticks=get(HH,'XTick');%retrieve current ticks
-        ticks=ticks*opts.nPix;%multiply
+        ticks=ticks*opts.nRes;%multiply
         ticks = num2cell(ticks);
         ticks=cellfun(@num2str,ticks,'UniformOutput',false);%convert to cellstr
         set(HH,'XTickLabels',ticks)%set new tick labels

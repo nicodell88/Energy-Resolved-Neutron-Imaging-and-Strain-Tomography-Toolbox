@@ -55,18 +55,19 @@ opts.rangeRight = [0.0190 0.0198];  %Range for averaging on right of edge for gu
 opts.rangeLeft  = [0.0175 0.0185];  %Range for averaging on left of edge for guessing mask
 % opts.d0         =  0.018821361897845;           %Unstrained tof/wl
 opts.d0         =  0.018821361897845 + 3e-6;           %Unstrained tof/wl
-opts.nPix       = 13;               %Macro-pixel size
+opts.nPix       = 25;               %number of pixels to average over (npix-by-npix)
+opts.nRes       = 2;                %number of pixels to step by before calculating next edge
 opts.Thresh     = 0.01;             %More than 80% of a macro-pixel must be within the mask before a bragg edge will be fit to it
 opts.maskThresh = 0.02;             %Threshold edge height for mask
 % Insert Bragg Edge Fitting Options here
 opts.BraggOpts.startRange = [0.0175 0.0180];  %Fitting left side of edge
 opts.BraggOpts.endRange   = [0.019 0.0195];   %Fitting right side of edge
-opts.BraggOpts.method     = 'attenuation';             %Fitting algorithm
-% opts.BraggOpts.GPscheme     = 'hilbertspace';             %Fitting algorithm
-% 
-% opts.method = 'GP';
-% opts.covfunc = 'M52';        %Sets the GP covariance function (currently only SE implemented)
-opts.BraggOpts.optimiseHP = 'none';
+% opts.BraggOpts.method     = 'attenuation';             %Fitting algorithm
+
+opts.BraggOpts.GPscheme     = 'hilbertspace';             %Fitting algorithm
+opts.BraggOpts.method = 'GP';
+opts.BraggOpts.covfunc = 'M52';        %Sets the GP covariance function (currently only SE implemented)
+opts.BraggOpts.optimiseHP = 'all';
 
 opts.BraggOpts.sigma0     = 0.01;        %Initial guess for gaussian broadening term
 opts.BraggOpts.tau0       = 0.01;        %Initial guess for exponential decay term
@@ -79,7 +80,7 @@ opts.BraggOpts.a_hkl0 = 0.5;          %Initial guess for a_hkl
 opts.BraggOpts.b_hkl0 = 0.5;          %Initial guess for b_hkl
 opts.BraggOpts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
 opts.BraggOpts.l      = 0.0445;         %Squared-Exponential Kernel Hyperparameter, lengthscale
-opts.BraggOpts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
+opts.BraggOpts.ns     = 500;         %Number of MC samples used to estimate bragg-edge location and variance.
 opts.BraggOpts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
 
 
@@ -90,7 +91,7 @@ opts.figNum = 1;
 % tic
 [StrainImage,SigmaImage,opts]= makeStrainImage(OB,Proj,opts);
 % toc
-% Plot Strain Image
+%% Plot Strain Image
 plotStrainImage(StrainImage,SigmaImage,opts)
 %% Save Figure
 msg = sprintf('strainImage_%s',datestr(now,'yy_mm_dd_hh_MM_ss'));

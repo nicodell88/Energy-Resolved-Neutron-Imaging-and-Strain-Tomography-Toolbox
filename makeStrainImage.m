@@ -29,6 +29,8 @@ function [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts,d0Tr)
 %           opts.d0         :   time-of-flight corresponding to the
 %                               unstrained lattice parameter.
 %           opts.nPix       :   Size of macro-pixels for averaging over.
+%           opts.nRes       :   Number of pixels to step by before fitting
+%                               another edge.
 %           opts.Thresh     :   Maximum fraction of pixels allowed within
 %                               macro-pixel but not within mask. e.g., 0.05
 %           opts.maskThresh :   Threshold value for determining mask...
@@ -50,6 +52,8 @@ function [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts,d0Tr)
 % Last modified: 06/03/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
+TBdir = fileparts(mfilename('fullpath'));
+addpath(genpath(fullfile(TBdir,'utility_functions')))
 %% process inputs
 if ~isfield(opts,'supplyMask')
     opts.supplyMask = 'auto';
@@ -134,15 +138,30 @@ nwl = length(Proj.tof);
 Proj_masked = Proj.im_stack .*opts.mask;
 OB_masked   = OB.im_stack   .*opts.mask;
 
-PAve = [];
-OBAve = [];
-PI = [];
+PAve = nan(nPixCol*nPixRow,nwl);
+OBAve = nan(nPixCol*nPixRow,nwl);
+PI = nan(nPixCol*nPixRow,1);
+iter = 0;
 
-for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due to mixed indexing
-    for i = 1:(floor(nPixRow/opts.nPix))
+    delete(findall(0,'tag','TMWWaitbar'));
+    msg     = 'Downsampling projection';
+    wh      = waitbar(0,msg, ...
+        'Name', 'Bragg Edge Progress Bar', ...
+        'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
+
+for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due to mixed indexing
+    for i = 1:(floor(nPixRow/opts.nRes))
+        iter = iter+1;
+         waitbar(iter/(floor(nPixCol/opts.nRes)*floor(nPixRow/opts.nRes)),wh); % Update waitbar
+%         iter = (j-1)*(floor(nPixRow/opts.nRes)) + i;
+        i_inds = (i-1)*opts.nRes +(1:(opts.nPix)) - round(opts.nPix/2);
+        j_inds = (j-1)*opts.nRes +(1:(opts.nPix)) - round(opts.nPix/2);
         
-        i_inds = (i-1)*opts.nPix +(1:(opts.nPix));
-        j_inds = (j-1)*opts.nPix +(1:(opts.nPix));
+        idx = i_inds>0 & i_inds<nPixRow;
+        i_inds = i_inds(idx);
+        
+        idx = j_inds>0 & j_inds<nPixRow;
+        j_inds = j_inds(idx);
         
         n_pix = length(i_inds)*length(j_inds);
         
@@ -170,23 +189,39 @@ for j = 1:(floor(nPixCol/opts.nPix))        %Order of for loops is important due
             OB_sec = reshape(OB_sec,n_pix,nwl);
             
             
-            PAve    = [PAve;squeeze(nanmean(Proj_sec,1))];
-            OBAve   = [OBAve;squeeze(nanmean(OB_sec,1))];
+%             PAve    = [PAve;squeeze(nanmean(Proj_sec,1))];
+%             OBAve   = [OBAve;squeeze(nanmean(OB_sec,1))];
+            PAve(iter,:)    = squeeze(nanmean(Proj_sec,1));
+            OBAve(iter,:)   = squeeze(nanmean(OB_sec,1));
+            
             tmp = mean(I(~isnan(Proj_sec(:,1))));
             
             if isnan(tmp)
                 indicator_macro(i,j) = 0;
             end
-            PI = [PI;tmp];
+            PI(iter) = tmp;
             
         end
         
     end
 end
+delete(wh)
 OB_cell = {OBAve(~isnan(PI),:)};
 Proj_cell = {PAve(~isnan(PI),:)};
 
 Tr_cell = {[Proj_cell{1}]./[OB_cell{1}]};
+
+%% Choose to run HP opt
+if strcmpi(opts.BraggOpts.method,'gp') && ~strcmpi(opts.BraggOpts.optimiseHP,'none')
+    if size(Tr_cell{1},1) > 200 
+        idx = randsample(size(Tr_cell{1},1),200);
+    else
+        idx = 1:size(Tr_cell{1},1);
+    end
+    
+    [~,opts.BraggOpts] = optimiseGP({Tr_cell{1}(idx,:)},Proj.tof,opts.BraggOpts);
+
+end
 
 %% Fit Bragg Edges
 if exist('d0Tr','var')
