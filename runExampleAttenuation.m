@@ -4,7 +4,7 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 20/04/2020
+% Last modified: 21/04/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ opts.b00        = 0.5;          %Initial guess for b0
 opts.a_hkl0     = 0.5;          %Initial guess for a_hkl
 opts.b_hkl0     = 0.5;          %Initial guess for b_hkl
 opts.t_hkl0     = tof(250);     %Initial guess for edge location
-opts.sigma0     = log(4.4e-5);        %Initial guess for gaussian broadening term
+opts.sigma0     = 4.4e-5;       %Initial guess for gaussian broadening term
 opts.tau0       = 0.008;        %Initial guess for exponential decay term
 
 % [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);
