@@ -24,7 +24,7 @@ function [data] = processProjection(fileNames,pathName,opts)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 23/03/2020
+% Last modified: 21/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 nn = length(fileNames);
@@ -62,7 +62,8 @@ for i = 1:nn
     msg = sprintf('Processing: %s',fileNames{n});
     waitbar(i/nn,h,msg);
     
-    FitPathI = dir([pathName,fileNames{n}]);
+    FitPathI = dir(fullfile(pathName,fileNames{n}));
+    assert(numel(FitPathI)==1,'Expected exactly 1 matching file for %s',fullfile(pathName,fileNames{n}))
     fileI = fullfile(FitPathI.folder,FitPathI.name);
     info = fitsinfo(fileI);
     %     info=fitsinfo([pathname,fileNames{n}]);
