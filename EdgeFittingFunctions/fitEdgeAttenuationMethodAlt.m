@@ -153,7 +153,7 @@ residual = Tr(inds) - TrFit(inds);
 % hold off
 
 fitinfo.resnorm = sum(residual.^2);
-fitinfo.edgewidth = p(2);
+fitinfo.edgewidth = exp(p(2));
 fitinfo.alpha = p(3);
 fitinfo.beta = p(4);
 end

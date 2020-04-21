@@ -4,7 +4,7 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 13/01/2020
+% Last modified: 21/04/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -54,5 +54,5 @@ opts.tau0    	= 1e-5;        %Initial guess for exponential decay term
 %% Omitting these allows fitEdge5ParamMethod to choose better initial conditions for each projection.
 % opts.C10     	= 0.25;        %Initial guess for pedistool
 % opts.C20     	= 0.25;        %Initial guess for slope
-
-[d_cell,std_cell,TrFit_cell] = fitEdges(Tr,tof,opts);
+opts.Par = true;
+[d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);

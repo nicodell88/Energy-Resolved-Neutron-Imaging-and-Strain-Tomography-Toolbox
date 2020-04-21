@@ -103,8 +103,8 @@ sigma = (ci(1,2)-ci(1,1))/4;
 TrFit = fit3(p,tof);
 
 fitinfo.resnorm = resnorm;
-fitinfo.edgewidth = p(2);
-fitinfo.egdgeassymetry = p(3);
+fitinfo.edgewidth = exp(p(2));
+fitinfo.egdgeassymetry = exp(p(3));
 end
 
 function [edge_spect] = edgeModel(params,t)
