@@ -32,6 +32,9 @@ function [lengthscale,opts] = optimiseGP(Tr,tof,opts)
 % Last modified: 02/04/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
+TBdir = fileparts(mfilename('fullpath'));
+addpath(fullfile(TBdir,'EdgeFittingFunctions'));
+addpath(genpath(fullfile(TBdir,'utility_functions')))
 %% Inspect Data
 assert(numel(tof)==length(tof),'Expected tof to be a Nx1 vector');
 assert(iscell(Tr),'Expected ''Tr'' to be a cell array');
@@ -134,7 +137,6 @@ Sig_m = [];
 for k = 1:np
     %Loop over measurements in this projection
     for i = 1:size(Tr{k},1)
-        
         try
         fit1 = @(p,x) exp(-(p(1) + p(2).*x));
         [p,~,~,~,~,~,~] = lsqcurvefit(fit1,[a00;b00],tof(opts.endIdx(1):opts.endIdx(2)),Tr{k}(i,opts.endIdx(1):opts.endIdx(2)),[],[],optionsFit);
@@ -183,9 +185,6 @@ lengthscale = max((tof(2)-tof(1))*10,exp(logl)); % ensure a sensible result
 
 
 opts.l = lengthscale;
-if strcmpi(opts.optimiseHP,'all')
-    opts.optimiseHP = 'none';
-end
 
 disp(['optimisation finished with l = ',num2str(lengthscale)]) 
 

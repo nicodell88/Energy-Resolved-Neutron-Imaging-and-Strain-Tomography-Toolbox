@@ -162,16 +162,6 @@ if ~opts.Par %no parfor
     iter = 0;
     % Loop over projections
     for k = 1:np
-        if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
-            nedges = size(Tr{k},1);
-            if nedges > 200
-                II = randsample(nedges,200);
-                Trbatch{1} = Tr{k}(II,:);
-            else
-                Trbatch{1} = Tr{k};
-            end
-            [~,opts] = optimiseGP(Trbatch,tof,opts);
-        end
         %Loop over measurements in this projection
         for i = 1:size(Tr{k},1)
             iter = iter+1;
@@ -206,16 +196,6 @@ if ~opts.Par %no parfor
     end
 elseif opts.Par &&  np==1 %par for single proj
         k=1;%only 1 projection
-        if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
-            nedges = size(Tr{k},1);
-            if nedges > 200
-                II = randsample(nedges,200);
-                Trbatch{1} = Tr{k}(II,:);
-            else
-                Trbatch{1} = Tr{k};
-            end
-            [~,opts] = optimiseGP(Trbatch,tof,opts);
-        end
         %Loop over measurements in this projection
         nEdge = size(Tr{k},1);
         
@@ -249,16 +229,6 @@ elseif opts.Par &&  np==1 %par for single proj
 else %par for multipl proj
     ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges'); 
     parfor k = 1:np
-%         if strcmpi(opts.method,'GP') && strcmpi(opts.optimiseHP,'projection')   % run hp optimisatoin on subset of data from projection
-%             nedges = size(Tr{k},1);
-%             if nedges > 200
-%                 II = randsample(nedges,200);
-%                 Trbatch{1} = Tr{k}(II,:);
-%             else
-%                 Trbatch{1} = Tr{k};
-%             end
-%             [~,opts] = optimiseGP(Trbatch,tof,opts);
-%         end
         %Loop over measurements in this projection
         nEdge = size(Tr{k},1);
         

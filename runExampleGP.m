@@ -1,5 +1,5 @@
 %
-% runExampleGP.m 
+% runExampleGP.m
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -10,12 +10,12 @@
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or
 % (at your option) any later version.
-% 
+%
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 % GNU General Public License for more details.
-% 
+%
 % You should have received a copy of the GNU General Public License
 % along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -35,7 +35,6 @@ set(0, 'defaultLineLinewidth',2)
 set(0,'defaultFigureColor','w')
 %% Load Data
 addpath ./data
-% addpath ./utility_functions
 load CubeProj.mat
 %% Plot Data
 figure(1); clf;
@@ -46,7 +45,6 @@ grid minor
 %% Fit Bragg-Edge
 opts.startRange = [0.0175 0.0180];  %Fitting left side of edge
 opts.endRange   = [0.019 0.0195];   %Fitting right side of edge
-opts.method     = 'gp';             %Fitting algorithm
 opts.plot       = true;             %plot results along the way
 opts.optimiseHP = 'none';
 
@@ -59,5 +57,20 @@ opts.l      = 0.02;         %Squared-Exponential Kernel Hyperparameter, lengthsc
 opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
 opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
 
-opts.Par = false;
+opts.method     = 'GP';             %Fitting algorithm
+opts.GPscheme   = 'hilbertspace';   %
+opts.covfunc     = 'M52';
+%% Subsample data for hyperparameter optimisation
+NBatch = 200;
+[Cnrows,~] = cellfun(@size, Tr);
+
+r = rand(NBatch,1);
+idxP = randsample(numel(Tr),NBatch,'true');
+idxE = round(r.*Cnrows(idxP));
+extract = @(idxP_cell,idxE_cell) Tr{idxP_cell}(idxE_cell,:);
+Tr_batch = {cell2mat(arrayfun(extract,idxP,idxE,'uniformoutput',false))};
+
+[~,opts] = optimiseGP(Tr_batch,tof,opts);
+%% FIT EDGES
+opts.Par = true;
 [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);
