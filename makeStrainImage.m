@@ -262,12 +262,25 @@ if (nargout >= 4)
         warning('Cannot produce edge width image using cross correlation method')
     elseif (strcmpi(opts.BraggOpts.method,'gp'))
         edgeWidths = [fitInfo_cells{1}(:).widthathalfheight];
-        edgeWidthImage(idx)
+        edgeWidthImage(idx)= edgeWidths;
     else 
         edgeWidths = [fitInfo_cells{1}(:).edgewidth];
         edgeWidthImage(idx) = edgeWidths;
     end
     
 end
+
+% if (nargout >= 5)
+%     edgeAssymImage = nan(size(indicator_macro));
+%     if strcmpi(opts.BraggOpts.method,'crosscorr')
+%         warning('Cannot produce assymmetry images with cross validation method')
+%     elseif (strcmpi(opts.BraggOpts.method,'gp'))
+%        warning('Edge assymmetry images not implemented for GP method')
+%     else 
+%         assyms = [fitInfo_cells{1}(:).egdgeassymetry];
+%         edgeAssymImage(idx) = assyms;
+%     end
+%     
+% end
 
 end
