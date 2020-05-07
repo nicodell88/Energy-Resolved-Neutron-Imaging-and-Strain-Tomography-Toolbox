@@ -47,6 +47,7 @@ opts.startRange = [0.0175 0.0180];  %Fitting left side of edge
 opts.endRange   = [0.019 0.0195];   %Fitting right side of edge
 opts.plot       = true;             %plot results along the way
 opts.optimiseHP = 'none';
+opts.Par = false;
 
 opts.a00    = 0.5;          %Initial guess for a0
 opts.b00    = 0.5;          %Initial guess for b0

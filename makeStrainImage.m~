@@ -45,9 +45,6 @@ function [StrainImage,SigmaImage,opts,edgeWidthImage] = makeStrainImage(OB,Proj,
 %       deviation of the
 %       - opts is the modified options structure, with the same form as the
 %       input
-%    Optional outputs:
-%       - edgeWidthImage: is a 2D array containing the edge widths to be
-%       plotted as an image
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -258,15 +255,7 @@ SigmaImage(idx) = sqrt(...
 
 if (nargout >= 4)
     edgeWidthImage = nan(size(indicator_macro));
-    if strcmpi(opts.BraggOpts.method,'crosscorr')
-        warning('Cannot produce edge width image using cross correlation method')
-    elseif (strcmpi(opts.BraggOpts.method,'gp'))
-        edgeWidths = [fitInfo_cells{1}(:).widthathalfheight];
-        edgeWidthImage(idx)
-    else 
-        edgeWidths = [fitInfo_cells{1}(:).edgewidth];
-        edgeWidthImage(idx) = edgeWidths;
-    end
+    edgeWidths = fitInfo_cells{1}
     
 end
 

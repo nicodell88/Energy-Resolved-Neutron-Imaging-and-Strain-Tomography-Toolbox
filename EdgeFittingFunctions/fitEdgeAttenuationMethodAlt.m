@@ -35,6 +35,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethodAlt(Tr,tof,opts
 %       fitinfo.resnorm     : the squared 2 norm of the residual as
 %                               calcualted by lsqcurvefit
 %       fitinfo.edgewidth   : edge width parameter from the attenuation model 
+%       fitinfo.edgewidthstd   : std of estimated edge width 
 %       fitinfo.alpha       : exponential rise time
 %       fitinfo.beta        : exponential decay time
 %
@@ -43,7 +44,7 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethodAlt(Tr,tof,opts
 % Authors:
 %   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 21/04/2020
+% Last modified: 07/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -154,6 +155,7 @@ residual = Tr(inds) - TrFit(inds);
 
 fitinfo.resnorm = sum(residual.^2);
 fitinfo.edgewidth = exp(p(2));
+fitinfo.edgewidthstd = (exp(ci(2,2))-exp(ci(2,1)))/4; 
 fitinfo.alpha = p(3);
 fitinfo.beta = p(4);
 end

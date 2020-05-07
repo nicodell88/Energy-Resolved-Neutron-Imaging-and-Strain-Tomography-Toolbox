@@ -26,14 +26,16 @@ function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethod(Tr,tof,opts)
 %       fitinfo.resnorm     : the squared 2 norm of the residual as
 %                               calcualted by lsqcurvefit
 %       fitinfo.edgewidth   : edge width parameter from the attenuation model 
+%       fitinfo.edgewidthstd   : std of estimated edge width 
 %       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
+%       fitinfo.egdgeassymetrystd : std of estimated edge assymetry
 %
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
 %   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>
-% Last modified: 21/04/2020
+% Last modified: 07/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% least squares fitting options
@@ -104,7 +106,9 @@ TrFit = fit3(p,tof);
 
 fitinfo.resnorm = resnorm;
 fitinfo.edgewidth = exp(p(2));
+fitinfo.edgewidthstd = (exp(ci(2,2))-exp(ci(2,1)))/4;   
 fitinfo.egdgeassymetry = exp(p(3));
+fitinfo.edgeassymetrystd = (exp(ci(3,2))-exp(ci(3,1)))/4;
 end
 
 function [edge_spect] = edgeModel(params,t)
