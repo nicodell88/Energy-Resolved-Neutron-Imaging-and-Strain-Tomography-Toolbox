@@ -61,8 +61,8 @@ opts.rangeRight = [0.0190 0.0198];  %Range for averaging on right of edge for gu
 opts.rangeLeft  = [0.0175 0.0185];  %Range for averaging on left of edge for guessing mask
 % opts.d0         =  0.018821361897845;           %Unstrained tof/wl
 opts.d0         =  0.018821361897845 + 3e-6;           %Unstrained tof/wl
-opts.nPix       = 40;               %number of pixels to average over (npix-by-npix)
-opts.nRes       = 2;                %number of pixels to step by before calculating next edge
+opts.nPix       = 24;               %number of pixels to average over (npix-by-npix)
+opts.nRes       = 24;                %number of pixels to step by before calculating next edge
 opts.Thresh     = 0.1;             %More than 80% of a macro-pixel must be within the mask before a bragg edge will be fit to it
 opts.maskThresh = 0.02;             %Threshold edge height for mask
 % Insert Bragg Edge Fitting Options here
@@ -98,7 +98,7 @@ opts.BraggOpts.n      = 2500;         %Number of points to sample the Bragg-Edge
 opts.BraggOpts.Par = true;
 opts.figNum = 1;
 % tic
-[~,~,opts,edgeWidthImage]= makeStrainImage(OB,Proj,opts);
+[~,~,opts,edgeWidthImage,edgeWidthStdImage]= makeStrainImage(OB,Proj,opts);
 % toc
 %% Plot edge width image
 % inds = edgeWidthImage > 2e-4;
@@ -107,7 +107,7 @@ figure(1)
 clf
 pcolor(edgeWidthImage)
 colorbar()
-title(['sant method - ' num2str(opts.nPix) 'x' num2str(opts.nPix) ' running average'])
+title(['GP method - ' num2str(opts.nPix) 'x' num2str(opts.nPix) ' running average'])
 axis equal
 % ChangeTicks(gca)
 % caxis([1.2e-4 1.85e-4])
