@@ -1,4 +1,4 @@
-function [StrainImage,SigmaImage,opts,edgeWidthImage] = makeStrainImage(OB,Proj,opts,d0Tr)
+function [StrainImage,SigmaImage,opts,edgeWidthImage,edgeWidthStdImage] = makeStrainImage(OB,Proj,opts,d0Tr)
 %MAKESTRAINIMAGE Generates a strain-image from a single projection
 %   [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts)
 %   Inputs:
@@ -48,6 +48,8 @@ function [StrainImage,SigmaImage,opts,edgeWidthImage] = makeStrainImage(OB,Proj,
 %    Optional outputs:
 %       - edgeWidthImage: is a 2D array containing the edge widths to be
 %       plotted as an image
+%       - edgeWidthStdImage: is a 2D array containing the edge widths standard 
+%           deviations to be plotted as an image
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -258,14 +260,18 @@ SigmaImage(idx) = sqrt(...
 
 if (nargout >= 4)
     edgeWidthImage = nan(size(indicator_macro));
+    edgeWidthStdImage = nan(size(indicator_macro));
     if strcmpi(opts.BraggOpts.method,'crosscorr')
         warning('Cannot produce edge width image using cross correlation method')
     elseif (strcmpi(opts.BraggOpts.method,'gp'))
+        warning('Edge width stds not implement for GP method')
         edgeWidths = [fitInfo_cells{1}(:).widthathalfheight];
         edgeWidthImage(idx)= edgeWidths;
     else 
         edgeWidths = [fitInfo_cells{1}(:).edgewidth];
+        edgeWidthsStd = [fitInfo_cells{1}(:).edgewidthstds];
         edgeWidthImage(idx) = edgeWidths;
+        edgeWidthStdImage(idx) = edgeWidthsStd;
     end
     
 end
