@@ -56,8 +56,9 @@ opts.rangeLeft  = [0.0175 0.0185];  %Range for averaging on left of edge for gue
 opts.d0         =  0.018821361897845 + 3e-6;           %Unstrained tof/wl
 %% PROFILE OPTIONS
 opts.pixelCentre = 250;
-opts.nWidth     = 5;
-opts.nPix       = 50;  %actually averages over (2*nPix+1)-by-(2*nWidth+1)
+opts.nWidth     = 5;    %
+opts.nPix       = 50;   %averages over (2*nPix+1)-by-(2*nWidth+1)
+opts.nRes      = 2;
 %%
 opts.Thresh     = 0.1;             %More than 90% of a macro-pixel must be within the mask before a bragg edge will be fit to it
 opts.maskThresh = 0.02;             %Threshold edge height for mask

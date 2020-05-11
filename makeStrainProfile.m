@@ -156,16 +156,16 @@ wh      = waitbar(0,msg, ...
 
 % for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due to mixed indexing
 %     for i = 1:(floor(nPixRow/opts.nRes))
-for i = 1:512
+for i = 1:(floor(nPixCol/opts.nRes))
     iter = iter+1;
     waitbar(iter/512,wh); % Update waitbar
     %         iter = (j-1)*(floor(nPixRow/opts.nRes)) + i;
     switch(lower(opts.AveDir))
         case 'horz'
-            i_inds = i + (-opts.nWidth:opts.nWidth);
+            i_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
             j_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
         case 'vert'
-            j_inds = i + (-opts.nWidth:opts.nWidth);
+            j_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
             i_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
     end
 %     i_inds = i;
