@@ -71,16 +71,16 @@ opts.AveDir      = 'horz'; %'horz'
 % Insert Bragg Edge Fitting Options here
 % opts.BraggOpts.startRange = [0.0182 0.01835];  %Fitting left side of edge
 % opts.BraggOpts.endRange   = [0.0186 0.0188];   %Fitting right side of edge
-opts.BraggOpts.startRange = [0.018 0.0182];  %Fitting left side of edge
-opts.BraggOpts.endRange   = [0.0187 0.019];   %Fitting right side of edge
+opts.BraggOpts.startRange = [0.018 0.01835];  %Fitting left side of edge
+opts.BraggOpts.endRange   = [0.0186 0.019];   %Fitting right side of edge
 
 % opts.BraggOpts.range = [0.01835 0.0186];
 opts.BraggOpts.range = [0.0182 0.0187];
 
 opts.BraggOpts.GPscheme     = 'hilbertspace';             %Fitting algorithm
 % opts.BraggOpts.method = 'gp';
-opts.BraggOpts.method = 'attenuation';
-% opts.BraggOpts.method = '5param';
+% opts.BraggOpts.method = 'attenuation';
+opts.BraggOpts.method = '5param';
 opts.BraggOpts.covfunc = 'M52';        %Sets the GP covariance function (currently only SE implemented)
 opts.BraggOpts.optimiseHP = 'all';
 
@@ -117,7 +117,7 @@ subplot 212
 errorbar(inds,widthProfile(inds),widthStdProfile(inds))
 plot(inds,widthProfile(inds))
 title('Width profile')
-ylim([-1e-3 1e-3])
+ylim([-1e-3 1e])
 % xlim([min(inds) max(inds)])
 % toc
 %% Plot Strain Image
