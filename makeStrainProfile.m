@@ -278,7 +278,7 @@ if (nargout >= 4)
         edgeWidthImage(idx)= edgeWidths;
     else
         edgeWidths = [fitInfo_cells{1}(:).edgewidth];
-        edgeWidthsStd = [fitInfo_cells{1}(:).edgewidthstds];
+        edgeWidthsStd = [fitInfo_cells{1}(:).edgewidthstd];
         edgeWidthImage(idx) = edgeWidths;
         edgeWidthStdImage(idx) = edgeWidthsStd;
     end
