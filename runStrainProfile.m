@@ -39,8 +39,10 @@ set(0,'defaultFigureColor','w')
 
 
 %% Options
-opts.ObFile     = '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/OpenBeam/OpenBeamImg__proj001_idx.mat';   %Open Beam File location
-opts.ProjFile   = '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/SteelCube/SteelCube__proj001_idx.mat';    %Projection File location
+% opts.ObFile     = '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/OpenBeam/OpenBeamImg__proj001_idx.mat';   %Open Beam File location
+% opts.ProjFile   = '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/SteelCube/SteelCube__proj001_idx.mat';    %Projection File location
+opts.ObFile     = '/Users/johannes/Dropbox/ToolboxPaper/matlab/preprocessed/JPARC2018_OB_proj_003.mat';   %Open Beam File location
+opts.ProjFile   = '/Users/johannes/Dropbox/ToolboxPaper/matlab/preprocessed/JPARC2018_proj_000.mat';    %Projection File location
 
 
 OB      = load(opts.ObFile);    %Load open beam
