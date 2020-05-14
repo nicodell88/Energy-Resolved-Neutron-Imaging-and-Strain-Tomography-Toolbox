@@ -26,7 +26,7 @@ if strcmp('iter',vars)
     if isempty(p) || isempty(Hdetector)
         p = gobjects(N,1);
         Hdetector = gobjects(N,1);
-        H = figure(1);
+        H = figure(2);
         clf
         
         for i = 1:N

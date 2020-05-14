@@ -1,4 +1,4 @@
-function [rODn,Rno,mask,X] = alignmentProcedure(stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,varargin)
+function [rODn,Rno,mask,X] = alignmentProcedure(x_init,stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,varargin)
 %[rODn,Rno,mask,X] = alignmentProcedure(stlFile,stlUnit,rHSs_all,Rsh_all,varargin)
 % Inputs:
 %   - stlFile is a char-array or string containing a relative or absolute
@@ -19,10 +19,11 @@ function [rODn,Rno,mask,X] = alignmentProcedure(stlFile,stlUnit,rHSs_all,Rsh_all
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 12/05/2020
+% Last modified: 14/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 p = inputParser;
+p.StructExpand = true;
 
 %% STL
 addRequired(p,'stlFile',@(x) assert(exist(x,'file') == 2,'''stlFile'' must exist'));
@@ -35,15 +36,27 @@ addRequired(p,'Rsh_all',validate_Rsh_all)
 %% Shadow
 addRequired(p,'Shadow',@(x) validateattributes(x,{'numeric','logical'},{'ndims',3,'size',[512,512,nan]}))
 %% Optional Params
-addParameter(p,'sigma'          ,3e-4 ,@(x) validateattributes(x,{'numeric'},{'positive'}));
+addParameter(p,'sigma'          ,3e-4   ,@(x) validateattributes(x,{'numeric'},{'positive'}));
 addParameter(p,'plotGrid'       ,[3,4]  ,@(x) (validateattributes(x,{'numeric'},{'vector','positive','integer','numel',2})));
 addParameter(p,'Nnodes'         ,1.5e3  ,@(x) (validateattributes(x,{'numeric'},{'scalar','integer','>',1e3})));
 addParameter(p,'Npix'           ,1.5e3  ,@(x) (validateattributes(x,{'numeric'},{'scalar','integer','>',1e3})));
-addParameter(p,'thresh'         ,0      ,@(x) validateattributes(x,{'numeric'},{'scalar'}) );       
+addParameter(p,'thresh'         ,0      ,@(x) validateattributes(x,{'numeric'},{'scalar'}) );
+%% init
+addParameter(p,'Theta_ns',[],@(x) validateattributes(x,{'numeric'},{'numel',3}))
+addParameter(p,'Theta_ho',[],@(x) validateattributes(x,{'numeric'},{'numel',3}))
+addParameter(p,'rSDn'    ,[],@(x) validateattributes(x,{'numeric'},{'numel',2}))
+addParameter(p,'rOHh'    ,[],@(x) validateattributes(x,{'numeric'},{'numel',3}))
+%% opt
+addParameter(p,'maxIter' , 1e2, @(x) validateattributes(x,{'numeric'},{'scaler','positive','integer'}));
 %% Parse inputs
-parse(p,stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,varargin{:})
+parse(p,stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,x_init,varargin{:})
 %% Check dimensions match
 assert(isequal(size(p.Results.Rsh_all,3),size(p.Results.rHSs_all,2), size(p.Results.Shadow,3)),'Expected rHSs_all to be 3xN, Rhs_all to be 3x3xN, and Shadow to be 512x512xN');
+%% 
+assert(~isempty(p.Results.Theta_ns),'User must provide an initial guess for ''Theta_ns'' in ''x0.Theta_ns''')
+assert(~isempty(p.Results.Theta_ho),'User must provide an initial guess for ''Theta_ho'' in ''x0.Theta_ho''')
+assert(~isempty(p.Results.rSDn),'User must provide an initial guess for ''rSDn'' in ''x0.rSDn''')
+assert(~isempty(p.Results.rOHh),'User must provide an initial guess for ''rOHh'' in ''x0.rOHh''')
 %% Conversion factor
 switch lower(p.Results.stlUnit)
     case 'm'
@@ -112,10 +125,10 @@ rSDn        = [0,0];
 rOHh        = [0,0,0];
 
 x0 = [...
-    Theta_ns(:);
-    Theta_ho(:);
-    rSDn(:);
-    rOHh(:)];
+    p.Results.Theta_ns(:);
+    p.Results.Theta_ho(:);
+    p.Results.rSDn(:);
+    p.Results.rOHh(:)];
 
 opts.sigma = p.Results.sigma;
 opts.plotGrid = p.Results.plotGrid;
@@ -133,29 +146,42 @@ options = optimoptions(@fmincon,...
     'HessianFcn','objective',...
     'OptimalityTolerance',2e4,...
     'StepTolerance',1e-8,...
-    'MaxIterations',20,...
+    'MaxIterations',p.Results.maxIter,...
     'OutputFcn',plotFcn,...
     'PlotFcn',{@optimplotx,@optimplotfval});
 
 % beta = ones();
 costFun = @(x)AlignmentCostFunction([x],rPDd,beta,rVOo,rHSs_all,Rsh_all,opts);
 
-%% Testing
-state.iteration = 1;
-vars = 'iter';
-plotFcn(zeros(11,1),state,vars)
 %% run alignment
 Xopt = fmincon(costFun,x0,[],[],[],[],[],[],[],options);
+%% Unwrap outputs
+X.Theta_ns  = Xopt(1:3);
+X.Theta_ho  = Xopt(4:6);
+X.rSDn      = Xopt(7:8);
+X.rOHh      = Xopt(9:11);
+
+X.Rns = eulerRotation(X.Theta_ns);
+X.Rho = eulerRotation(X.Theta_ho);
+%%
+opts.nRowPix = 512;
+opts.nColPix = 512;
+centres = pix2vec(1:opts.nRowPix,1:opts.nColPix);
+yCentres = centres(2,:);
+zCentres = centres(3,:);
+[Y,Z] = meshgrid(yCentres.',zCentres.');
+Y = Y(:);
+Z = Z(:);
+rPDn = [zeros(length(Y),1).';Y(:).';Z(:).'];
 %% convert results to absolute sample position
-
-%% produce mask
-
-rODn = 0;
-Rno = 0;
-mask = 0;
-X = 0;
-
-
+rODn = nan(3,np);
+Rno  = nan(3,3,np);
+mask = nan(size(Shadow));
+for i = 1:np
+rODn(:,i) = [0;X.rSDn] + X.Rns*p.Results.rHSs_all(:,i) + X.Rns*p.Results.Rsh_all(:,:,i)*X.rOHh;
+Rno(:,:,i)  = X.Rns * p.Results.Rsh_all(:,:,i) * X.Rho;
+mask(:,:,i) = ProduceMasks(sample, rPDn, rODn(:,i),Rno(:,:,i),opts);
+end
 
 end
 
