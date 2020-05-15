@@ -68,9 +68,9 @@ rODn    = nan(3,nProj);
 Rno     = nan(3,3,nProj);
 mask    = nan(512,512,nProj);
 
-[rODn(:,1:55),Rno(:,:,1:55),mask(:,:,1:55),X1] =  alignmentProcedure(x0,STL_file,STL_units,rHSs(:,1:55),Rsh(:,:,1:55),edges(:,:,1:55),'maxIter',2e1);
+[rODn(:,1:55),Rno(:,:,1:55),mask(:,:,1:55),X1] =  alignmentProcedure(x0,STL_file,STL_units,rHSs(:,1:55),Rsh(:,:,1:55),edges(:,:,1:55),'maxIter',1e2);
 x0.Theta_ho = [0 pi/2 0];
-[rODn(:,56:nProj),Rno(:,:,56:nProj),mask(:,:,56:nProj),X2] = alignmentProcedure(x0,STL_file,STL_units,rHSs(:,56:end),Rsh(:,:,56:end),edges(:,:,56:end),'maxIter',2e1);
+[rODn(:,56:nProj),Rno(:,:,56:nProj),mask(:,:,56:nProj),X2] = alignmentProcedure(x0,STL_file,STL_units,rHSs(:,56:end),Rsh(:,:,56:end),edges(:,:,56:end),'maxIter',1e2);
 
 
 
