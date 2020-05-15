@@ -70,7 +70,7 @@ if strcmp('iter',vars)
         end
     end
     drawnow
-    msg = sprintf('ResultsIter_%02d',state.iteration);
-    saveas(1,msg,'png')
+%     msg = sprintf('ResultsIter_%02d',state.iteration);
+%     saveas(1,msg,'png')
 end
 end
