@@ -1,4 +1,4 @@
-function edges = getEdges(projPath,opts)
+function edges = getEdgeHeight(projPath,opts)
 %getEdges(projPath,opts) calculates the "pseudo edge heights" for use in
 %   sample alignment.
 % Inputs:
@@ -14,10 +14,12 @@ function edges = getEdges(projPath,opts)
 %   - edges is a mPix-by-nPix-by-nProj matrix where each page is contains the
 %     "edge heights" for each projection
 %
+% See also alignmentProcedure, processFitsFiles
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 07/04/2020
+% Last modified: 21/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 % Grab data files containing "proj"

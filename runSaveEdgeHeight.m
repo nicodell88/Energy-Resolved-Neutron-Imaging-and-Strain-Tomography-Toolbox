@@ -1,10 +1,10 @@
 %
-% runSaveEdges.m
+% runSaveEdgeHeight.m
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 15/01/2020
+% Last modified: 21/05/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ opts.proj_idx   = [0:69];                   %projections to be used for sample a
 projPath = uigetdir('/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2019 Working Folder/data/cube_plug');
 opts.OB  = '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2019 Working Folder/data/open_beam/open_beam_11ksec.mat';
 tic
-edges = getEdges(projPath,opts);
+edges = getEdgeHeight(projPath,opts);
 toc
 %%
 figure(1)

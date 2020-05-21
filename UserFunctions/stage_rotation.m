@@ -6,6 +6,13 @@ function R = stage_rotation(about_z,about_y)
 % y axis and the second rotation about the z axis
 %  
 
+% Copyright (C) 2020 The University of Newcastle, Australia
+% Authors:
+%   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
+%   Johannes Hendriks <Johannes.Hendriks@newcastle.edu.au>
+% Last modified: 20/05/2020
+% This program is licensed under GNU GPLv3, see LICENSE for more details.
+
 theta   = about_y;   % Pitch angle
 psi     = about_z;   % Yaw angle
 

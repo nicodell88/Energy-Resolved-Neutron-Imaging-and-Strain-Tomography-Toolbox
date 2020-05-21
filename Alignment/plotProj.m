@@ -2,7 +2,7 @@ function stop = plotProj(x,state,sample,edges,rHSs,Rsh,opts,vars)
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 12/05/2020
+% Last modified: 20/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 stop = false;
 
@@ -71,6 +71,7 @@ if strcmp('iter',vars)
     end
     drawnow
 %     msg = sprintf('ResultsIter_%02d',state.iteration);
-%     saveas(1,msg,'png')
+%     save(msg,'Theta_ns','Theta_ho','rSDn','rOHh');
+%     saveas(gcf,msg,'png')
 end
 end

@@ -4,7 +4,7 @@
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 14/05/2020
+% Last modified: 21/05/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ set(0,'defaultAxesTickLabelInterpreter', 'latex')
 set(0,'defaultLineLinewidth',2)
 set(0,'defaultFigureColor','w')
 %%
-addpath(genpath('../utility_functions'))
+addpath('./UserFunctions/')
 %% Options (these should all be set using input parser)
 opts.sigma      = 3e-4;     %Length scale for scan matching (m)
 opts.plotGrid   = [2 2];    %Will produce an MxN grid of subplots for plotting the optimisation progress
@@ -42,9 +42,9 @@ opts.Nnodes     = 1500;     %Nominal number of nodes in FE mesh
 opts.Npix       = 1500;     %Number of pixels after downsampling
 opts.thresh     = 0.05;     %Threshold for deciding whether a pixel is behind the sample or not
 %% Edges
-load('edges_logical.mat');    %Load the edges file saved after running getEdges.
+load('./Alignment/edges_logical.mat');    %Load the edges file saved after running getEdges.
 %% Known Rotations
-T = readtable('angles_revised.xlsx');   %
+T = readtable('./Alignment/angles_revised.xlsx');   %
 nProj       = 70;
 PhiDeg      = T.Chi_deg_(1:nProj);
 thetaDeg    = T.Phi_deg_(1:nProj);
@@ -60,7 +60,7 @@ x0.Theta_ho     = [0 0 0].';    %[radians] - Defines Rso1, the rotation between 
 x0.rSDn         = [0 0].';      %[m] - the vector to S (stage reference) from D (centre of detector) in beam coordinates (n). (only y z... x is not observable from the detector).
 x0.rOHh         = [0 0 0].';    %[m] - the vector to O (origin of sample coordinate system) from H (reference point on sample holder) expressed sample holder coordinates (h).
 %% STL Model
-STL_file = 'cubePlugCorrected.stl'; %Path and filename of sample STL
+STL_file = './Alignment/cubePlugCorrected.stl'; %Path and filename of sample STL
 STL_units = 'mm';                   %Units used in the STL, must be either 'mm', 'm', or 'inch' otherwise perform manual conversion to one of these.
 
 %% Call to function
@@ -68,10 +68,11 @@ rODn    = nan(3,nProj);
 Rno     = nan(3,3,nProj);
 mask    = nan(512,512,nProj);
 
-[rODn(:,1:55),Rno(:,:,1:55),mask(:,:,1:55),X1] =  alignmentProcedure(x0,STL_file,STL_units,rHSs(:,1:55),Rsh(:,:,1:55),edges(:,:,1:55),'maxIter',1e2);
+[rODn(:,1:55),Rno(:,:,1:55),mask(:,:,1:55),X1] =  alignmentProcedure(x0,STL_file,STL_units,rHSs(:,1:55),Rsh(:,:,1:55),edges(:,:,1:55),'maxIter',3e1);
 x0.Theta_ho = [0 pi/2 0];
 [rODn(:,56:nProj),Rno(:,:,56:nProj),mask(:,:,56:nProj),X2] = alignmentProcedure(x0,STL_file,STL_units,rHSs(:,56:end),Rsh(:,:,56:end),edges(:,:,56:end),'maxIter',1e2);
-
+%% Save data needed for tomography data processing
+save SampleAlignmentResults rODn Rno mask
 
 
 

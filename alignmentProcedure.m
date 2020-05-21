@@ -1,27 +1,63 @@
 function [rODn,Rno,mask,X] = alignmentProcedure(x_init,stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,varargin)
-%[rODn,Rno,mask,X] = alignmentProcedure(stlFile,stlUnit,rHSs_all,Rsh_all,varargin)
+%[rODn,Rno,mask,X] = alignmentProcedure(stlFile,stlUnit,rHSs_all,Rsh_all,...)
 % Inputs:
+%   - x_init is a structure containing the initial guesses for the unknown
+%       parameters.
+%       - x_init.Theta_ns   a 3x1 vector specifying the unknown angles which
+%                           define Rns.
+%       - x_init.Theta_ho   a 3x1 vector specifying the unknown angles which
+%                           define Rho.
+%       - x_init.rSDn       a 2x1 vector specifying the unknown y and z
+%                           components of the sample stage off-set
+%       - x_init.rOHh       a 3x1 vector specifying the unknown sample
+%                           position in the holder error.
 %   - stlFile is a char-array or string containing a relative or absolute
 %       filepath to the stl file of the sample.
 %   - stlUnits is a char-array or string which indicates the unit of the
 %       CAD model, must be {'mm','m','inch'}
-%   -rHSs_all is a 3xN matrix
-%   - opts is a structure containing
-%       opts.rangeLeft  :   a 2 element vector containing the window for
-%                           averaging the edge height before the edge
-%       opts.rangeRight :   a 2 element vector containing the window for
-%                           averaging the edge height after the edge
-%
+%   -rHSs_all is a 3xN array specifying the known sample translations
+%       for each projection.
+%   - Rsh_all is a 3x3xN array defining the known sample orientation for
+%       each projection.
+%   - Shadow is a 512x512xN array of logicals specifying which rays passed
+%   through the sample.
+% Further optional parameters are specified using name/value pairs.
+%   - 'sigma'       used to specify the region of attraction for the point cloud.
+%   - 'plotGrid'    is a 2 element vector [m n] used to specify the
+%                   dimensions of a subplot grid which plots the sample alignment
+%                   as the optimisation progresses.(Default = [3 4])
+%   - 'Nnodes'      The nominal number of nodes the finite element mesh
+%                   should contain. (Default = 1500)
+%   - 'Npix'        The number of pixels to be sampled for each projection.
+%                   (Default = 1500)
+%   - 'thresh'      A threshold to choose which rays passed through the
+%                   sample. (Default = 0)
+%   - 'maxIter'     The maximum number of itterations of the optimiser.
+%                   (Default = 100)
 % Outputs:
-%   - edges is a mPix-by-nPix-by-nProj matrix where each page is contains the
-%     "edge heights" for each projection
+%   - rODn is a 3xN matrix, each column specifying the sample position in
+%       beam coordinates for each projection.
+%   - Rno is a 3x3xN array, each page specifying the rotations between the
+%       sample coordinates and beam coordinates for each projection.
+%   - mask is a 512x512xN logical array generated from the alignment results, 
+%       specifying which rays passed through the sample.
+%   - X is a structure whos fields contain the optimal results for the
+%       unknown parameters.
 %
+% See also getEdges
+%
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 14/05/2020
+% Last modified: 21/05/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
+%% add paths
+TBdir = fileparts(mfilename('fullpath'));
+addpath(fullfile(TBdir,'Alignment'));
+addpath(genpath(fullfile(TBdir,'utility_functions')))
+%%
 p = inputParser;
 p.StructExpand = true;
 
@@ -52,7 +88,7 @@ addParameter(p,'maxIter' , 1e2, @(x) validateattributes(x,{'numeric'},{'scaler',
 parse(p,stlFile,stlUnit,rHSs_all,Rsh_all,Shadow,x_init,varargin{:})
 %% Check dimensions match
 assert(isequal(size(p.Results.Rsh_all,3),size(p.Results.rHSs_all,2), size(p.Results.Shadow,3)),'Expected rHSs_all to be 3xN, Rhs_all to be 3x3xN, and Shadow to be 512x512xN');
-%% 
+%%
 assert(~isempty(p.Results.Theta_ns),'User must provide an initial guess for ''Theta_ns'' in ''x0.Theta_ns''')
 assert(~isempty(p.Results.Theta_ho),'User must provide an initial guess for ''Theta_ho'' in ''x0.Theta_ho''')
 assert(~isempty(p.Results.rSDn),'User must provide an initial guess for ''rSDn'' in ''x0.rSDn''')
@@ -80,14 +116,14 @@ hMax = 10;
 while true
     mesh = generateMesh(model,'Hmax',hMax);
     nNodes = length(mesh.Nodes);
-nNodes_des = p.Results.Nnodes;
-
-if nNodes >= nNodes_des
-   break 
-end
-
-hMax = hMax*0.95;
-
+    nNodes_des = p.Results.Nnodes;
+    
+    if nNodes >= nNodes_des
+        break
+    end
+    
+    hMax = hMax*0.95;
+    
 end
 
 rVOo = mesh.Nodes*convert2m;
@@ -119,10 +155,11 @@ for i = 1:np
 end
 %% Set up optimisation options
 rPDd = rPDnDownsampled(1:end);
-Theta_ns    = [0,0,0];
-Theta_ho    = [0,0,0];
-rSDn        = [0,0];
-rOHh        = [0,0,0];
+
+% Theta_ns    = [0,0,0];
+% Theta_ho    = [0,0,0];
+% rSDn        = [0,0];
+% rOHh        = [0,0,0];
 
 x0 = [...
     p.Results.Theta_ns(:);
@@ -141,16 +178,15 @@ options = optimoptions(@fmincon,...
     'specifyObjectiveGradient',true,...
     'checkGradients',false,...
     'display','iter',...
-    'FunctionTolerance',1e-8,...
+    ...'FunctionTolerance',1e-8,...
     'SubProblemAlgorithm','factorization',...
     'HessianFcn','objective',...
-    'OptimalityTolerance',2e4,...
+    ...'OptimalityTolerance',2e4,...
     'StepTolerance',1e-8,...
     'MaxIterations',p.Results.maxIter,...
     'OutputFcn',plotFcn,...
     'PlotFcn',{@optimplotx,@optimplotfval});
 
-% beta = ones();
 costFun = @(x)AlignmentCostFunction([x],rPDd,beta,rVOo,rHSs_all,Rsh_all,opts);
 
 %% run alignment
@@ -178,9 +214,9 @@ rODn = nan(3,np);
 Rno  = nan(3,3,np);
 mask = nan(size(Shadow));
 for i = 1:np
-rODn(:,i) = [0;X.rSDn] + X.Rns*p.Results.rHSs_all(:,i) + X.Rns*p.Results.Rsh_all(:,:,i)*X.rOHh;
-Rno(:,:,i)  = X.Rns * p.Results.Rsh_all(:,:,i) * X.Rho;
-mask(:,:,i) = ProduceMasks(sample, rPDn, rODn(:,i),Rno(:,:,i),opts);
+    rODn(:,i) = [0;X.rSDn] + X.Rns*p.Results.rHSs_all(:,i) + X.Rns*p.Results.Rsh_all(:,:,i)*X.rOHh;
+    Rno(:,:,i)  = X.Rns * p.Results.Rsh_all(:,:,i) * X.Rho;
+    mask(:,:,i) = ProduceMasks(sample, rPDn, rODn(:,i),Rno(:,:,i),opts);
 end
 
 end
