@@ -75,6 +75,14 @@ if nargin>=3
                 end
             case 'crosscorr'
                 edgeFit = @(tr,wl,op)crossCorrMethod(tr,d0,wl,op);
+            case 'gpcc'
+%                 opts.covfunc = 'm52';
+                opts.GPscheme = 'hilbertspace';
+                edgeFit = @(tr,wl,op)fitEdgeGPCCMethod(tr,d0,wl,op);
+                case 'gpcc2'
+%                 opts.covfunc = 'm52';
+                opts.GPscheme = 'hilbertspace';
+                edgeFit = @(tr,wl,op)fitEdgeGPCC2(tr,d0,wl,op);
             otherwise
                 error('%s is not a valid edge fitting method, see help fitEdges',opts.method);
         end
@@ -130,7 +138,7 @@ np = numel(Tr); %number of projections
 d_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 std_cell = cellfun(@(x) NaN(size(x,1),1), Tr, 'UniformOutput',false);
 TrFit_cell = cellfun(@(x) NaN(size(x)), Tr, 'UniformOutput',false);
-[~,~,~,fitInfoTemplate] = edgeFit(Tr{1}(1,:),tof,opts);
+[~,~,~,fitInfoTemplate,opts] = edgeFit(Tr{1}(1,:),tof,opts);
 fitinfo_cell= cellfun(@(x) repmat(fitInfoTemplate,size(x,1),1), Tr, 'UniformOutput',false);
 
 if opts.plot && ~opts.Par
@@ -177,8 +185,8 @@ if ~opts.Par %no parfor
                 if opts.plot
                     close(Hfig);
                 end
-%                 error(e.message);
-                 rethrow(e)
+                %                 error(e.message);
+                rethrow(e)
             end
             % Plot Results
             if opts.plot
@@ -195,39 +203,39 @@ if ~opts.Par %no parfor
         close(Hfig);
     end
 elseif opts.Par &&  np==1 %par for single proj
-        k=1;%only 1 projection
-        %Loop over measurements in this projection
-        nEdge = size(Tr{k},1);
-        
-        dTemp = nan(nEdge,1);
-        stdTemp = nan(nEdge,1);
-        trFitTemp = nan(size(Tr{k}));
-        fitInfoTemp = repmat(fitInfoTemplate,nEdge,1);
-        
-        % Setup par for waitbar
-        ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges'); 
-        
-        parfor i = 1:nEdge
-            ppm.increment();
-            % Call edge fitting function
-            try
-%                     [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
-                  [dTemp(i),stdTemp(i),trFitTemp(i,:),fitInfoTemp(i)] = edgeFit(Tr{k}(i,:),tof,opts);
-%                 fitInfoTemp(i) = fitInfoTemptmp;
-            catch e
-%                 error(e.message);
+    k=1;%only 1 projection
+    %Loop over measurements in this projection
+    nEdge = size(Tr{k},1);
+    
+    dTemp = nan(nEdge,1);
+    stdTemp = nan(nEdge,1);
+    trFitTemp = nan(size(Tr{k}));
+    fitInfoTemp = repmat(fitInfoTemplate,nEdge,1);
+    
+    % Setup par for waitbar
+    ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges');
+    
+    parfor i = 1:nEdge
+        ppm.increment();
+        % Call edge fitting function
+        try
+            %                     [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
+            [dTemp(i),stdTemp(i),trFitTemp(i,:),fitInfoTemp(i)] = edgeFit(Tr{k}(i,:),tof,opts);
+            %                 fitInfoTemp(i) = fitInfoTemptmp;
+        catch e
+            %                 error(e.message);
             delete(ppm);
             rethrow(e)
-            end
-            
         end
-        delete(ppm);
-        d_cell{k}       = dTemp;
-        std_cell{k}     = stdTemp;
-        TrFit_cell{k}   = trFitTemp;
-        fitinfo_cell{k} = fitInfoTemp;
+        
+    end
+    delete(ppm);
+    d_cell{k}       = dTemp;
+    std_cell{k}     = stdTemp;
+    TrFit_cell{k}   = trFitTemp;
+    fitinfo_cell{k} = fitInfoTemp;
 else %par for multipl proj
-    ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges'); 
+    ppm = ParforProgressbar(nAll,'title','Fitting Bragg Edges');
     parfor k = 1:np
         %Loop over measurements in this projection
         nEdge = size(Tr{k},1);
@@ -240,13 +248,13 @@ else %par for multipl proj
             ppm.increment();
             % Call edge fitting function
             try
-%                 [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
+                %                 [dTemp(i),stdTemp(i),trFitTemp(i,:),~] = fitEdgeAttenuationMethod(Tr{k}(i,:),tof,opts);
                 [dTemp(i),stdTemp(i),trFitTemp(i,:),fitInfoTemp(i)] = edgeFit(Tr{k}(i,:),tof,opts);
-%                 fitInfoTemp(i) = fitInfoTemptmp;
+                %                 fitInfoTemp(i) = fitInfoTemptmp;
             catch e
-%                 error(e.message);
-            delete(ppm);
-            rethrow(e)
+                %                 error(e.message);
+                delete(ppm);
+                rethrow(e)
             end
             
         end

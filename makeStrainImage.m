@@ -239,7 +239,7 @@ idx = find(logical(indicator_macro));
 StrainImage = nan(size(indicator_macro));
 SigmaImage  = nan(size(indicator_macro));
 
-if strcmpi(opts.BraggOpts.method,'crosscorr')
+if any(strcmpi(opts.BraggOpts.method,{'gpcc2','gpcc','crosscorr'}))
     StrainImage(idx) = (d_cell{1})/opts.d0;
 else
     StrainImage(idx) = (d_cell{1}-opts.d0)/opts.d0;

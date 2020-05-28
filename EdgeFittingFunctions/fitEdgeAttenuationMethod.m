@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit,fitinfo] = fitEdgeAttenuationMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeAttenuationMethod(Tr,tof,opts)
 %fitEdgeAttenuationMethod fits a bragg-edge using the method presented in:
 %   Santisteban, J., Edwards, L., Steuwer, A., Withers, P., 2001.
 %   Time-of-flight neutron transmission diffraction. Journal of applied

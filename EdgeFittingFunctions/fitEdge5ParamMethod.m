@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit,fitinfo] = fitEdge5ParamMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdge5ParamMethod(Tr,tof,opts)
 %fitEdge5ParamMethod fits a bragg-edge using the method used by: Tremsin,
 %   A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by

@@ -1,4 +1,4 @@
-function [edgePos,sigma,TrFit,fitinfo] = fitEdgeGPMethod(Tr,tof,opts)
+function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeGPMethod(Tr,tof,opts)
 %fitEdgeGPMethod fits a bragg-edge using the method presented in:
 %   TODO: Insert Bib entry
 %   TODO: Insert arxiv link when paper is written.

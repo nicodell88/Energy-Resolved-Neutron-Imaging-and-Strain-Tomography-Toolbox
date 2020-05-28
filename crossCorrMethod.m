@@ -124,13 +124,13 @@ fit1 = @(p,x) pseudoVoigt([p],x);
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit1,opts.p00,X(idxFit),C(idxFit),[],[],optionsFit);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
 
-figure(2)
-clf
-plot(X(idxFit),C(idxFit))
-hold on
-x = X(idxFit);
-y = fit1(p,x);
-plot(x,y)
+% figure(2)
+% clf
+% plot(X(idxFit),C(idxFit))
+% hold on
+% x = X(idxFit);
+% y = fit1(p,x);
+% plot(x,y)
 
 % pause
 %% Extract results
