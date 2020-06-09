@@ -217,13 +217,12 @@ Proj_cell = {PAve(~isnan(PI),:)};
 Tr_cell = {[Proj_cell{1}]./[OB_cell{1}]};
 
 %% Choose to run HP opt
-if strcmpi(opts.BraggOpts.method,'gp') && ~strcmpi(opts.BraggOpts.optimiseHP,'none')
+if any(strcmpi(opts.BraggOpts.method,{'gp','gpcc2'})) && ~strcmpi(opts.BraggOpts.optimiseHP,'none')
     if size(Tr_cell{1},1) > 200 
         idx = randsample(size(Tr_cell{1},1),200);
     else
         idx = 1:size(Tr_cell{1},1);
     end
-    
     [~,opts.BraggOpts] = optimiseGP({Tr_cell{1}(idx,:)},Proj.tof,opts.BraggOpts);
 
 end

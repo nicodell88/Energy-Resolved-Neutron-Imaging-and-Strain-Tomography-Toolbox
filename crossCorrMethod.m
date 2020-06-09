@@ -1,4 +1,4 @@
-function [deltaD,sigma,TrFit,fitinfo] = crossCorrMethod(Tr1,Tr2,tof,opts)
+function [deltaD,sigma,TrFit,fitinfo,opts] = crossCorrMethod(Tr1,Tr2,tof,opts)
 %crossCorrMethod Calculates the "shift" in wavelength or time of flight
 %	between two sets of transmission data. Through an unstressed sample and a
 %	stressed sample. This method is presented in: Ramadhan, R.S., Kockelmann,
