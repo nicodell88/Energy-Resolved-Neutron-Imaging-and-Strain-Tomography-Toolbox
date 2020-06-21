@@ -154,6 +154,10 @@ iter = 0;
         'Name', 'Bragg Edge Progress Bar', ...
         'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
 
+    plotDS = nan(512,512);
+    figure(1)
+    clf
+    H = pcolor(plotDS);
 for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due to mixed indexing
     for i = 1:(floor(nPixRow/opts.nRes))
         iter = iter+1;
@@ -185,7 +189,12 @@ for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due
             b = repelem(a',numel(I));
             newJ = repmat(J,nwl,1);
             newI = repmat(I,nwl,1);
-            inds = sub2ind(size(Proj_masked),newJ,newI,b);
+%             inds = sub2ind(size(Proj_masked),newJ,newI,b);
+            inds = sub2ind(size(Proj_masked),newI,newJ,b);
+            indsplot = sub2ind(size(plotDS),newI,newJ);
+            plotDS(indsplot) = 1;
+            H.CData = plotDS;
+            drawnow
             Proj_sec = Proj_masked(inds);
             OB_sec = OB_masked(inds);
             Proj_sec = permute(Proj_sec,[2,1,3]);

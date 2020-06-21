@@ -76,11 +76,11 @@ if nargin>=3
             case 'crosscorr'
                 edgeFit = @(tr,wl,op)crossCorrMethod(tr,d0,wl,op);
             case 'gpcc'
-%                 opts.covfunc = 'm52';
+                %                 opts.covfunc = 'm52';
                 opts.GPscheme = 'hilbertspace';
                 edgeFit = @(tr,wl,op)fitEdgeGPCCMethod(tr,d0,wl,op);
-                case 'gpcc2'
-%                 opts.covfunc = 'm52';
+            case 'gpcc2'
+                %                 opts.covfunc = 'm52';
                 opts.GPscheme = 'hilbertspace';
                 edgeFit = @(tr,wl,op)fitEdgeGPCC2(tr,d0,wl,op);
             otherwise
