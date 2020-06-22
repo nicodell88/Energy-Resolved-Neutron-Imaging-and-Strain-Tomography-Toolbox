@@ -46,7 +46,7 @@ tof = tof(:).';
 if nargin==3
     %% Method
     if isfield(opts,'method')
-        if ~any(strcmpi(opts.method,{'gp','gpcc2'}))
+        if ~any(strcmpi(opts.method,{'gp','gpcc','gpcc2'}))
             error('Can only optimise HP if using GP method')
         else
 %             edgeFit = @(tr,wl,op)fitEdgeGPMethod(tr,wl,op);
