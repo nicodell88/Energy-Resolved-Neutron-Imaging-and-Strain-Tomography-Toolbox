@@ -46,7 +46,7 @@ optionsFit              = optimoptions('lsqcurvefit','Algorithm','levenberg-marq
 optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
-optionsFit.OptimalityTolerance = 1e-6;
+optionsFit.OptimalityTolerance = 1e-8;
 
 %% populate opts structure
 if nargin>3
@@ -65,15 +65,32 @@ if nargin>3
         opts.peakWindow = 20;
     end
     
-    if ~isfield(opts,'p00')
-        opts.p00 = [  ...
-            15.2407     %y0
-            0.0         %xc
-            0      %log(A)
-            -4.1025     %log(Wg)
-            -3.5159     %log(Wl)
-            0.0876];    %log(Mu)
+    if ~isfield(opts,'y0')
+        opts.y0 = 0;
     end
+    if ~isfield(opts,'xc')
+        opts.xc = 0;
+    end
+    if ~isfield(opts,'A')
+        opts.A = exp(4.5);
+    end
+    if ~isfield(opts,'Wg')
+        opts.Wg = exp(4.3);
+    end
+    if ~isfield(opts,'Wl')
+        opts.Wl = exp(4.38);
+    end
+    if ~isfield(opts,'Mu')
+        opts.Mu = exp(-3.5);
+    end
+    opts.p00 = [...
+        opts.y0
+        opts.xc
+        log(opts.A)
+        log(opts.Wg)
+        log(opts.Wl)
+        log(opts.Mu)];
+    
 else
     opts.range = [tof(1) tof(end)];
     opts.order = 5;
@@ -120,23 +137,34 @@ idxFit = (-window:1:window) + idx;
 idxFit(idxFit > length(C)) = [];
 idxFit(idxFit < 1) = [];
 
+opts.p00(2) = X(idx);
+
 fit1 = @(p,x) pseudoVoigt([p],x);
 [p,~,residual,~,~,~,J] = lsqcurvefit(fit1,opts.p00,X(idxFit),C(idxFit),[],[],optionsFit);
 ci = nlparci(p,residual,'jacobian',J); % confidence intervals
+%%
+% p = [...
+%     0
+%     -50
+%     2.6
+%     3
+%     2
+%     0]
 
-% figure(2)
-% clf
-% plot(X(idxFit),C(idxFit))
-% hold on
-% x = X(idxFit);
-% y = fit1(p,x);
-% plot(x,y)
+figure(2)
+clf
+plot(X(idxFit),C(idxFit))
+hold on
+x = X(idxFit);
+y = fit1(p,x);
+plot(x,y)
 
 % pause
 %% Extract results
 deltaD = p(2)/500;
 sigma = (ci(2,2)-ci(2,1))/4/500;
 fitinfo.resnorm = residual;
+fitinfo.p = p;
 % fitinfo.edgewidth = p(2);
 % fitinfo.egdgeassymetry = p(3);
 end

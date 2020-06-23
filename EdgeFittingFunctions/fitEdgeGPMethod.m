@@ -1,7 +1,9 @@
 function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeGPMethod(Tr,tof,opts)
-%fitEdgeGPMethod fits a bragg-edge using the method presented in:
-%   TODO: Insert Bib entry
-%   TODO: Insert arxiv link when paper is written.
+%fitEdgeGPMethod fits a bragg-edge using the method presented in: 
+%Hendriks, J., O'Dell, N., Wills, A., Tremsin, A., Wensrich, C., & Shinohara, T.
+%(2020). Bayesian Non-parametric Bragg-edge Fitting for Neutron
+%Transmission Strain Imaging. arXiv preprint arXiv:2004.11526.
+%Pre-print available https://arxiv.org/pdf/2004.11526
 %
 % Inputs:
 %   - Tr is a 1xN double containing the normalised transmisssion curve
@@ -14,9 +16,8 @@ function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeGPMethod(Tr,tof,opts)
 %       opts.b_hkl0 :   Initial guess
 %       opts.sig_f  :   Squared-Exponential Kernel Hyperparameter, output variance
 %       opts.l      :   Squared-Exponential Kernel Hyperparameter, lengthscale
-%       opts.optimiseHP : if 'all' runs for every edge, if 'none' does not
-%                           run, if 'projection' runs once per projection in batch mode
-%
+%       opts.ns     :   Number of samples to use in MC step.
+%       opts.nx      :   Number test points.
 % Outputs:
 %   - edgePos is the location of the braggEdge
 %   - sigma is the estimated standard deviation
@@ -29,7 +30,8 @@ function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeGPMethod(Tr,tof,opts)
 %                                   the radio sig_m / std(residual)
 %       fitinfo.widthathalfheight: the peak width at half height
 %
-%
+%See also fitEdges.
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>

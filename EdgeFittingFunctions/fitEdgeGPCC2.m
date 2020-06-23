@@ -1,11 +1,34 @@
 function [deltaD,sigma,TrFit,fitinfo,opts] = fitEdgeGPCC2(Tr1,Tr2,tof,opts)
-%fitEdgeGPCCMethod
+%fitEdgeGPCC2 fits a bragg-edge using the method presented in: 
+% TODO: add reference to ArXiv etc
+%
+% Inputs:
+%   - Tr is a 1xN double containing the normalised transmisssion curve
+%   for a single projection
+%   - tof is an 1xN array of wave-lengths or time-of-flight.
+%   - options is a structure containing
+%       opts.a00    :   Initial guess
+%       opts.b00    :   Initial guess
+%       opts.a_hkl0 :   Initial guess
+%       opts.b_hkl0 :   Initial guess
+%       opts.sig_f  :   Squared-Exponential Kernel Hyperparameter, output variance
+%       opts.l      :   Squared-Exponential Kernel Hyperparameter, lengthscale
+%       opts.ns     :   Number of samples to use in MC step.
+%       opts.nx      :   Number test points.
+% Outputs:
+%   - edgePos is the location of the braggEdge
+%   - sigma is the estimated standard deviation
+%   - TrFit is is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the quality of the fit
+%       fitinfo.lengthscale     : the lengthscale used
+%
+%See also fitEdges.
 
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 27/05/2020
+% Last modified: 23/06/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% Process inputs
@@ -223,4 +246,5 @@ sigma  = std(d_all);
 TrFit  = festpProj;
 
 fitinfo.lengthscale = l;
+fitinfo.d_all = d_all;
 end

@@ -1,6 +1,6 @@
 function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdge5ParamMethod(Tr,tof,opts)
 %fitEdge5ParamMethod fits a bragg-edge using the method used by: Tremsin,
-%   A. S., Gao, Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
+%   A. S., Gao , Y., Dial, L. C., Grazzi, F., Shinohara, T., 2016.
 %   Investigation of microstructure in additive manufactured inconel 625 by
 %   spatially resolved neutron transmission spectroscopy. Science and
 %   Technology of advanced MaTerialS 17 (1), 324?336.
@@ -29,7 +29,8 @@ function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdge5ParamMethod(Tr,tof,opts)
 %       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
 %       fitinfo.egdgeassymetrystd : std of estimated edge assymetry
 %
-%
+%See also fitEdges.
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>

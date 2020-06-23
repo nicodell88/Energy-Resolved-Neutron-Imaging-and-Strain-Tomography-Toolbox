@@ -39,7 +39,8 @@ function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeAttenuationMethodAlt(Tr,tof
 %       fitinfo.alpha       : exponential rise time
 %       fitinfo.beta        : exponential decay time
 %
-%
+%See also fitEdges.
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Johannes Hendriks <Johannes.hendriks@newcastle.edu.au>

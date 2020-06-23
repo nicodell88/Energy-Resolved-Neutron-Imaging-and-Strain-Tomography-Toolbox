@@ -1,14 +1,37 @@
 function [deltaD,sigma,TrFit,fitinfo,opts] = fitEdgeGPCCMethod(Tr1,Tr2,tof,opts)
-%fitEdgeGPCCMethod
+%fitEdgeGPCCMethod fits a bragg-edge using the method presented in: 
+% TODO: add reference to ArXiv etc
+%
+% Inputs:
+%   - Tr is a 1xN double containing the normalised transmisssion curve
+%   for a single projection
+%   - tof is an 1xN array of wave-lengths or time-of-flight.
+%   - options is a structure containing
+%       opts.a00    :   Initial guess
+%       opts.b00    :   Initial guess
+%       opts.a_hkl0 :   Initial guess
+%       opts.b_hkl0 :   Initial guess
+%       opts.sig_f  :   Squared-Exponential Kernel Hyperparameter, output variance
+%       opts.l      :   Squared-Exponential Kernel Hyperparameter, lengthscale
+%       opts.ns     :   Number of samples to use in MC step.
+%       opts.nx      :   Number test points.
+% Outputs:
+%   - edgePos is the location of the braggEdge
+%   - sigma is the estimated standard deviation
+%   - TrFit is is the Bragg edge model evaluated at tof
+%   - fitinfo contains additional information about the quality of the fit
+%       fitinfo.lengthscale     : the lengthscale used
+%
+%See also fitEdges.
 
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 27/05/2020
+% Last modified: 23/06/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
-sig_f   = 1;    
+sig_f   = 1;
 l       = 1e-4;     % GP lengthscale
 ns      = 3000;     % number of samples to draw to compute variance
 nx      = 2500;     % number of points to predict at
@@ -25,10 +48,10 @@ end
 if isfield(opts,'l')        % default lengthscales
     l = opts.l;
 else
-    if strcmpi(covfunc,'se') 
+    if strcmpi(covfunc,'se')
         l = 0.03;
     end
-    if strcmpi(covfunc,'m32') 
+    if strcmpi(covfunc,'m32')
         l = 0.18;
     end
     if strcmpi(covfunc,'m52')
@@ -45,9 +68,9 @@ if isfield(opts,'nx')
     nx = opts.nx;
 end
 if isfield(opts,'GPscheme')
-   GPscheme = opts.GPscheme; 
-   if ~strcmpi(GPscheme,'hilbertspace')
-       error('Should not have gotten here')
+    GPscheme = opts.GPscheme;
+    if ~strcmpi(GPscheme,'hilbertspace')
+        error('Should not have gotten here')
     end
 end
 
@@ -78,7 +101,7 @@ y2 = Tr2;
 x       = tof(:);
 xt = linspace(tof(opts.startIdx(2)),tof(opts.endIdx(1)),nx)';
 %% identify sigm for both d0 and d
-sig_m1 = std(Tr1(end-40:end));
+sig_m1 = mean(std(Tr1(end-40:end)),std(Tr1(1:40)));
 sig_m2 = std(Tr2(end-40:end));
 %%
 
@@ -98,16 +121,16 @@ if strcmpi(covfunc,'se')
     L = max(pi/2/dlambda,tof(end)-tof(1));
     [Phi,~,SLambda,~, dPhi_T] = hilbert_approxSE(l,sig_f,m_basis,L,xt,x);
 elseif strcmpi(covfunc,'m32')
-    dlambda = 30/l/m_basis;    
+    dlambda = 30/l/m_basis;
     L = max(pi/2/dlambda,tof(end)-tof(1));
-    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM32(l,sig_f,m_basis,L,xt,x);  
-
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM32(l,sig_f,m_basis,L,xt,x);
+    
 elseif strcmpi(covfunc,'m52')
-    dlambda = 11/l/m_basis;    
+    dlambda = 11/l/m_basis;
     L = max(pi/2/dlambda,tof(end)-tof(1));
-    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM52(l,sig_f,m_basis,L,xt,x);  
-
-else 
+    [Phi,~,SLambda,~, dPhi_T] = hilbert_approxM52(l,sig_f,m_basis,L,xt,x);
+    
+else
     error('Invalid covariance function.')
 end
 
@@ -138,13 +161,12 @@ sv = v_basis1  + SigV.'*randn(m,ns);      % sample the coefficients
 sv2 = v_basis2 + SigV.'*randn(m,ns);      % sample the coefficients
 %% sample the derivative of the projection and use the mean of the d0
 sg  = dPhi_T * sv;
-
 sg2 = dPhi_T * sv2;
 %% calculate normalised cross correlation for all samples
 XC = nan(nx*2-1,ns);
 for i =1:ns
     [XC(:,i),lags] = xcorr(sg(:,i),dTr2,[],'normalized');
-%     [XC(:,i),lags] = xcorr(sg(:,i),sg2(:,i),[],'normalized');
+    %     [XC(:,i),lags] = xcorr(sg(:,i),sg2(:,i),[],'normalized');
 end
 
 dt = xt(2)-xt(1);

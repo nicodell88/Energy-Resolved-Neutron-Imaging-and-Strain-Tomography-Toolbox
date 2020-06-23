@@ -30,7 +30,8 @@ function [edgePos,sigma,TrFit,fitinfo,opts] = fitEdgeAttenuationMethod(Tr,tof,op
 %       fitinfo.egdgeassymetry : edge assymetry parameter of atten model
 %       fitinfo.egdgeassymetrystd : std of estimated edge assymetry
 %
-%
+%See also fitEdges.
+
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
