@@ -1,4 +1,4 @@
-function [StrainImage,SigmaImage,opts,edgeWidthImage,edgeWidthStdImage] = makeStrainProfile(OB,Proj,opts,d0Tr)
+function [StrainImage,SigmaImage,opts,edgeWidthImage,edgeWidthStdImage,Tr_cell] = makeStrainProfile(OB,Proj,opts,d0Tr)
 %MAKESTRAINPROFILE Generates a strain-image from a single projection
 %   [StrainImage,SigmaImage,opts] = makeStrainImage(OB,Proj,opts)
 %   Inputs:
@@ -54,7 +54,7 @@ function [StrainImage,SigmaImage,opts,edgeWidthImage,edgeWidthStdImage] = makeSt
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 10/05/2020
+% Last modified: 25/06/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 TBdir = fileparts(mfilename('fullpath'));
@@ -154,22 +154,33 @@ wh      = waitbar(0,msg, ...
     'Name', 'Bragg Edge Progress Bar', ...
     'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
 
-% for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due to mixed indexing
-%     for i = 1:(floor(nPixRow/opts.nRes))
+
+plotDS = nan(512,512);
+figure(1)
+clf
+H = pcolor(plotDS);
+shading flat
+title('Downsampling Projection')
 for i = 1:(floor(nPixCol/opts.nRes))
     iter = iter+1;
     waitbar(iter/512,wh); % Update waitbar
+    if getappdata(wh,'cancelling') % Check if waitbar cancel button clicked
+        delete(wh);
+        error('User cancelled operation')
+    end
     %         iter = (j-1)*(floor(nPixRow/opts.nRes)) + i;
     switch(lower(opts.AveDir))
         case 'horz'
-            i_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
+            i_inds = (i-1)*opts.nRes + (0:(opts.nWidth-1));
+            %             i_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
             j_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
         case 'vert'
-            j_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
+            j_inds = (i-1)*opts.nRes + (0:(opts.nWidth-1));
+            %             j_inds = (i-1)*opts.nRes + (-opts.nWidth:opts.nWidth);
             i_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
     end
-%     i_inds = i;
-%     j_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
+    %     i_inds = i;
+    %     j_inds = opts.pixelCentre + (-opts.nPix:+1:opts.nPix);
     
     idx = i_inds>0 & i_inds<nPixRow;
     i_inds = i_inds(idx);
@@ -194,7 +205,13 @@ for i = 1:(floor(nPixCol/opts.nRes))
         b = repelem(a',numel(I));
         newJ = repmat(J,nwl,1);
         newI = repmat(I,nwl,1);
-        inds = sub2ind(size(Proj_masked),newJ,newI,b);
+        inds = sub2ind(size(Proj_masked),newI,newJ,b);
+        
+        indsplot = sub2ind(size(plotDS),newI,newJ);
+        plotDS(indsplot) = 1;
+        H.CData = plotDS;
+        drawnow
+        
         Proj_sec = Proj_masked(inds);
         OB_sec = OB_masked(inds);
         Proj_sec = permute(Proj_sec,[2,1,3]);

@@ -78,11 +78,11 @@ default = 5*abs(tof(2)-tof(1)); % assymetry ;
 addParameter(p,'tau0',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive'}));
 %% starRange
-default = [tof(1) tof(50)];
+default = [tof(1) tof(30)];
 addParameter(p,'startRange',default, ...
     @(x) validateattributes((x),{'numeric'},{'vector','numel',2,'increasing','>=',tof(1),'<=',tof(end)}));
 %% endRange
-default = [tof(end-50) tof(end)];
+default = [tof(end-30) tof(end)];
 addParameter(p,'endRange',default, ...
     @(x) validateattributes((x),{'numeric'},{'vector','numel',2,'increasing','>=',tof(1),'<=',tof(end)}));
 switch lower(p.Results.method)

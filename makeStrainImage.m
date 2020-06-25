@@ -48,7 +48,7 @@ function [StrainImage,SigmaImage,opts,edgeWidthImage,edgeWidthStdImage] = makeSt
 %    Optional outputs:
 %       - edgeWidthImage: is a 2D array containing the edge widths to be
 %       plotted as an image
-%       - edgeWidthStdImage: is a 2D array containing the edge widths standard 
+%       - edgeWidthStdImage: is a 2D array containing the edge widths standard
 %           deviations to be plotted as an image
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -116,7 +116,8 @@ switch lower(opts.supplyMask)
         opts.mask = logical(opts.mask);
         
         %% display Mask
-        imagesc(opts.mask)
+        pcolor(opts.mask)
+        shading flat
         daspect([1 1 1])
         title('Mask')
         xlabel('X - [pixels]')
@@ -148,21 +149,27 @@ OBAve = nan(nPixCol*nPixRow,nwl);
 PI = nan(nPixCol*nPixRow,1);
 iter = 0;
 
-    delete(findall(0,'tag','TMWWaitbar'));
-    msg     = 'Downsampling projection';
-    wh      = waitbar(0,msg, ...
-        'Name', 'Bragg Edge Progress Bar', ...
-        'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
+delete(findall(0,'tag','TMWWaitbar'));
+msg     = 'Downsampling projection';
+wh      = waitbar(0,msg, ...
+    'Name', 'Bragg Edge Progress Bar', ...
+    'CreateCancelBtn', 'setappdata(gcbf,''cancelling'',1)');
 
-    plotDS = nan(512,512);
-    figure(1)
-    clf
-    H = pcolor(plotDS);
+plotDS = nan(512,512);
+figure(1)
+clf
+H = pcolor(plotDS);
+shading flat
+title('Downsampling Projection')
 for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due to mixed indexing
     for i = 1:(floor(nPixRow/opts.nRes))
         iter = iter+1;
-         waitbar(iter/(floor(nPixCol/opts.nRes)*floor(nPixRow/opts.nRes)),wh); % Update waitbar
-%         iter = (j-1)*(floor(nPixRow/opts.nRes)) + i;
+        waitbar(iter/(floor(nPixCol/opts.nRes)*floor(nPixRow/opts.nRes)),wh); % Update waitbar
+        if getappdata(wh,'cancelling') % Check if waitbar cancel button clicked
+            delete(wh);
+            error('User cancelled operation')
+        end
+        %         iter = (j-1)*(floor(nPixRow/opts.nRes)) + i;
         i_inds = (i-1)*opts.nRes +(1:(opts.nPix)) - round(opts.nPix/2);
         j_inds = (j-1)*opts.nRes +(1:(opts.nPix)) - round(opts.nPix/2);
         
@@ -189,7 +196,7 @@ for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due
             b = repelem(a',numel(I));
             newJ = repmat(J,nwl,1);
             newI = repmat(I,nwl,1);
-%             inds = sub2ind(size(Proj_masked),newJ,newI,b);
+            %             inds = sub2ind(size(Proj_masked),newJ,newI,b);
             inds = sub2ind(size(Proj_masked),newI,newJ,b);
             indsplot = sub2ind(size(plotDS),newI,newJ);
             plotDS(indsplot) = 1;
@@ -203,8 +210,8 @@ for j = 1:(floor(nPixCol/opts.nRes))        %Order of for loops is important due
             OB_sec = reshape(OB_sec,n_pix,nwl);
             
             
-%             PAve    = [PAve;squeeze(nanmean(Proj_sec,1))];
-%             OBAve   = [OBAve;squeeze(nanmean(OB_sec,1))];
+            %             PAve    = [PAve;squeeze(nanmean(Proj_sec,1))];
+            %             OBAve   = [OBAve;squeeze(nanmean(OB_sec,1))];
             PAve(iter,:)    = squeeze(nanmean(Proj_sec,1));
             OBAve(iter,:)   = squeeze(nanmean(OB_sec,1));
             
@@ -226,14 +233,14 @@ Proj_cell = {PAve(~isnan(PI),:)};
 Tr_cell = {[Proj_cell{1}]./[OB_cell{1}]};
 
 %% Choose to run HP opt
-if any(strcmpi(opts.BraggOpts.method,{'gp','gpcc2'})) && ~strcmpi(opts.BraggOpts.optimiseHP,'none')
-    if size(Tr_cell{1},1) > 200 
+if any(strcmpi(opts.BraggOpts.method,{'gp','gpcc','gpcc2'})) && ~strcmpi(opts.BraggOpts.optimiseHP,'none')
+    if size(Tr_cell{1},1) > 200
         idx = randsample(size(Tr_cell{1},1),200);
     else
         idx = 1:size(Tr_cell{1},1);
     end
     [~,opts.BraggOpts] = optimiseGP({Tr_cell{1}(idx,:)},Proj.tof,opts.BraggOpts);
-
+    
 end
 
 %% Fit Bragg Edges
@@ -275,7 +282,7 @@ if (nargout >= 4)
         warning('Edge width stds not implement for GP method')
         edgeWidths = [fitInfo_cells{1}(:).widthathalfheight];
         edgeWidthImage(idx)= edgeWidths;
-    else 
+    else
         edgeWidths = [fitInfo_cells{1}(:).edgewidth];
         edgeWidthsStd = [fitInfo_cells{1}(:).edgewidthstds];
         edgeWidthImage(idx) = edgeWidths;
@@ -290,11 +297,11 @@ end
 %         warning('Cannot produce assymmetry images with cross validation method')
 %     elseif (strcmpi(opts.BraggOpts.method,'gp'))
 %        warning('Edge assymmetry images not implemented for GP method')
-%     else 
+%     else
 %         assyms = [fitInfo_cells{1}(:).egdgeassymetry];
 %         edgeAssymImage(idx) = assyms;
 %     end
-%     
+%
 % end
 
 end
