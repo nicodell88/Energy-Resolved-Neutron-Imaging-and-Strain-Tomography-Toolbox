@@ -1,16 +1,16 @@
 function opts = BraggOptions(tof,method,varargin)
-%BraggOptions(tof,...) generates an options structure which contains the
+%BraggOptions(tof,method,...) generates an options structure which contains the
 %neccecary options for edge fitting. This structure is used during any task
 %requiring edge fitting.
 %   opts = BraggOptions(tof) specifies 'gp' as the default edge fitting
 %   method and generates the default options structure. tof is a vector of
 %   time of flight spectra.
 %
-%   opts = BraggOptions(tof,'method','attenuation') generates the default
+%   opts = BraggOptions(tof,'attenuation') generates the default
 %   structure for the Sanitisteban edge fitting method. Further options can
 %   be specified using name-value pairs. E.g., the default edge location
 %   can be specified using: 
-%   opts = BraggOptions(tof,'method','attenuation','t_hkl0', 4.17)
+%   opts = BraggOptions(tof,'attenuation','t_hkl0', 4.17)
 %
 %   More information on the name-value pairs for each method can be found
 %   in the help documentation for each edge fitting function.
