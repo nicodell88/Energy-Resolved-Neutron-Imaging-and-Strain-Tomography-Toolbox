@@ -46,7 +46,7 @@ optionsFit              = optimoptions('lsqcurvefit','Algorithm','levenberg-marq
 optionsFit.Algorithm    = 'Levenberg-Marquardt';
 optionsFit.Jacobian     = 'off';
 optionsFit.Display      = 'off';
-optionsFit.OptimalityTolerance = 1e-8;
+optionsFit.OptimalityTolerance = 1e-9;
 
 %% populate opts structure
 if nargin>3
@@ -126,7 +126,8 @@ dTr2 = dTr2(opts.frame:(end-opts.frame));
 
 %% Calculate cross correlation
 [C,Lags] = xcorr(dTr1,dTr2,[],'normalized');
-X = Lags*dt*500;
+% X = Lags*dt*500;
+X = Lags*dt;
 
 TrFit = nan(size(tof));
 
@@ -161,7 +162,8 @@ plot(x,y)
 
 % pause
 %% Extract results
-deltaD = p(2)/500;
+% deltaD = p(2)/500;
+deltaD = p(2);
 sigma = (ci(2,2)-ci(2,1))/4/500;
 fitinfo.resnorm = residual;
 fitinfo.p = p;

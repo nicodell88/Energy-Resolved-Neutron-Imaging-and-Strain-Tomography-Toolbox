@@ -1,4 +1,4 @@
-function opts = BraggOptions(tof,varargin)
+function opts = BraggOptions(tof,method,varargin)
 %BraggOptions(tof,...) generates an options structure which contains the
 %neccecary options for edge fitting. This structure is used during any task
 %requiring edge fitting.
@@ -26,11 +26,17 @@ function opts = BraggOptions(tof,varargin)
 % Last modified: 23/06/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
+validateattributes((tof),{'numeric'},{'increasing'})
+
+if~exist('method','var') || isempty(method)
+    method = 'gp';
+end
+
 p = inputParser;
 %% Method
 defaultMethod = 'gp';
 expectedMethods = {'attenuation','attenuationalt','5param','crosscorr','gp','gpcc','gpcc2'};
-addParameter(p,'method',defaultMethod, ...
+addOptional(p,'method',defaultMethod, ...
     @(x) any(validatestring(x,expectedMethods)));
 %% Plot
 default = false;
@@ -38,10 +44,10 @@ addParameter(p,'plot',default, ...
     @(x) islogical(x));
 %% Parallel
 default = false;
-addParameter(p,'par',default, ...
+addParameter(p,'Par',default, ...
     @(x) islogical(x));
 %% Parse
-parse(p,varargin{:});
+parse(p,method);
 %% Add options specific to each method
 %% a00
 default = 0.5;
@@ -64,11 +70,11 @@ default = mean(tof);
 addParameter(p,'t_hkl0',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar'}));
 %% sigma0
-default = 1e-5;
+default =   5*abs(tof(2)-tof(1)); % width
 addParameter(p,'sigma0',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive'}));
 %% tau0
-default = 1e-5;
+default = 5*abs(tof(2)-tof(1)); % assymetry ;
 addParameter(p,'tau0',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive'}));
 %% starRange
@@ -112,6 +118,18 @@ switch lower(p.Results.method)
         default = 3000;
         addParameter(p,'n',default, ...
             @(x) validateattributes((x),{'numeric'},{'scalar','positive','integer'}));
+        %% opts.GPscheme   = 'hilbertspace';   %
+        default = 'hilbertspace';
+        addParameter(p,'GPscheme',default, ...
+            @(x) validateattributes((x),{'numeric'},{'scalar','positive','integer'}));
+        %% opts.covfunc     = 'M52';
+        default = 'M52';
+        addParameter(p,'covfunc',default, ...
+            @(x) any(validatestring(x,{'M52','M32','SE'})));
+        %% opts.optimiseHP     = '';
+        default = 'all';
+        addParameter(p,'optimiseHP',default, ...
+            @(x) any(validatestring(x,{'M52','M32','SE'})));
     case 'crosscorr'
         %% range
         default = tof(1) + (tof(end)-tof(1))*[0.25 0.75];
@@ -156,7 +174,7 @@ switch lower(p.Results.method)
             @(x) validateattributes((x),{'numeric'},{'scalar'}));
 
 end
-parse(p,varargin{:});
+parse(p,method,varargin{:});
 opts = p.Results;
 
 end

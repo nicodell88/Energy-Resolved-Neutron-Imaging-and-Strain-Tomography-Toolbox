@@ -39,30 +39,14 @@ addpath ./utility_functions
 load    corr_paper_data.mat
 
 %% Fit Bragg-Edge
-opts.method     = 'crosscorr';
-opts.order      = 3;            %polynomial order of Savitzky-Golay
-opts.frame      = 9;            %frame-length for Savitzky-Golay (must be Odd)
-opts.peakWindow = 20;           %window for peak fitting
-opts.range      = [4.55 4.9];   %Wavelengths of interest
+opts = BraggOptions(lambda,'crosscorr','frame',35,'peakwindow',16,'Wg',1000,'Wl',10,'Mu',0.1);
 
-opts.p00 = [... %Pseudo-Voigt function params
-    15.2407     %y0
-    0.0         %xc
-    1.8534      %log(A)
-    -4.1025     %log(Wg)
-    -3.5159     %log(Wl)
-    0.0876];    %log(Mu)
 %% Fit Edges
-dd      = nan(15,1);
-sigma   = nan(15,1);
+[dd_cell,sigma_cell,~,fitinfo] = fitEdges({Tr.'},lambda,opts,d0_al.');
 
-%     [dd(i),sigma(i),stuff,things] = crossCorrMethod(Tr(:,i),d0_al,lambda,opts);
-      [dd_cell,sigma_cell] = fitEdges({Tr.'},lambda,opts,d0_al.');
-
-dd = dd_cell{1};
 %% Plot Results
 figure(3); clf;
-errorbar(dist,dd,sigma)
+errorbar(dist,dd_cell{1}.',sigma_cell{1})
 xlabel('Z (distance from sample center) - [mm]')
 ylabel('Shift in wavelength - [\AA]')
 title('Al\{111\} Bragg Edge')

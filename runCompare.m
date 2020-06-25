@@ -43,34 +43,16 @@ plot(tof,Tr{1}(20,:))%arbitrary
 xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
-%% Fit Bragg-Edge
-opts.startRange = [tof(1) tof(150)];    %Fitting left side of edge
-opts.endRange   = [tof(371) tof(end)];  %Fitting right side of edge
-opts.range      = [0.018 0.019];    %Range for fitting 5 param method
-opts.method     = 'gp';             %Fitting algorithm
-opts.plot       = false;             %plot results along the way
-%% Used for Attenuation method
-opts.a00    = 0.5;          %Initial guess for a0
-opts.b00    = 0.5;          %Initial guess for b0
-opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
-opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
-%% Used for parametric methods
-opts.t_hkl0     = 0.0187;      %Initial guess for edge location
-opts.sigma0  	= 1e-5;        %Initial guess for gaussian broadening term
-opts.tau0    	= 1e-5;        %Initial guess for exponential decay term
-%% GP
-opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
-opts.l      = 1e-4;         %Squared-Exponential Kernel Hyperparameter, lengthscale
-opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
-opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
+
+%%
+attenOpts       = BraggOptions(tof,'attenuation','endrange',[0.019 tof(end)]);
+fiveParamOpts   = BraggOptions(tof,'5param','range',[0.0185 0.019]);
+gpOpts          = BraggOptions(tof,'gp','l',0.02);
 
 testProj = {Tr{1}(200,:)};
-opts.method     = 'attenuation';    %Fitting algorithm
-[attenBragg,stdAtten,TrFit_cell1] = fitEdges(testProj,tof,opts);
-opts.method     = '5param';         %Fitting algorithm
-[fiveparamBragg,stdFive,TrFit_cell2] = fitEdges(testProj,tof,opts);
-opts.method     = 'gp';             %Fitting algorithm
-[gpBragg,stdGP,TrFit_cell3] = fitEdges(testProj,tof,opts);
+[attenBragg,stdAtten,TrFit_cell1] = fitEdges(testProj,tof,attenOpts);
+[fiveparamBragg,stdFive,TrFit_cell2] = fitEdges(testProj,tof,fiveParamOpts);
+[gpBragg,stdGP,TrFit_cell3] = fitEdges(testProj,tof,gpOpts);
 %% Plot Results
 figure(2); clf;
 ax(1) = subplot(2,1,1);

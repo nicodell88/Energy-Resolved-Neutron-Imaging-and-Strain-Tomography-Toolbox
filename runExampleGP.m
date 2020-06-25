@@ -42,26 +42,9 @@ plot(tof,Tr{3}(100,:))%arbitrary
 xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
-%% Fit Bragg-Edge
-opts.startRange = [0.0175 0.0180];  %Fitting left side of edge
-opts.endRange   = [0.019 0.0195];   %Fitting right side of edge
-opts.plot       = true;             %plot results along the way
-opts.optimiseHP = 'none';
-opts.Par = false;
 
-opts.a00    = 0.5;          %Initial guess for a0
-opts.b00    = 0.5;          %Initial guess for b0
-opts.a_hkl0 = 0.5;          %Initial guess for a_hkl
-opts.b_hkl0 = 0.5;          %Initial guess for b_hkl
-opts.sig_f  = 1;            %Squared-Exponential Kernel Hyperparameter, output variance
-opts.l      = 0.02;         %Squared-Exponential Kernel Hyperparameter, lengthscale
-opts.ns     = 3000;         %Number of MC samples used to estimate bragg-edge location and variance.
-opts.n      = 2500;         %Number of points to sample the Bragg-Edge function.
-
-opts.method     = 'GP';             %Fitting algorithm
-opts.GPscheme   = 'hilbertspace';   %
-opts.covfunc     = 'M52';
 %% Subsample data for hyperparameter optimisation
+opts = BraggOptions(tof,'gp','Par',true);
 NBatch = 200;
 [Cnrows,~] = cellfun(@size, Tr);
 
@@ -73,5 +56,4 @@ Tr_batch = {cell2mat(arrayfun(extract,idxP,idxE,'uniformoutput',false))};
 
 [~,opts] = optimiseGP(Tr_batch,tof,opts);
 %% FIT EDGES
-opts.Par = true;
 [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);
