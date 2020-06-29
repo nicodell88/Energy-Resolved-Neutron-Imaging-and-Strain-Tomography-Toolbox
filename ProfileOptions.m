@@ -1,13 +1,13 @@
-function [opts] = ImageOptions(tof,varargin)
-%ImageOptions(tof,...) generates an options structure which contains the
-%neccecary options for strain imaging
-%   opts = ImageOptions(tof) specifies the options for downsampling the
-%   data using 18x18 macro pixels and will automatically generate the mask.   
+function opts = ProfileOptions(tof,varargin)
+%ProfileOptions(tof,...) generates an options structure which contains the
+%neccecary options for strain profiling.
+%   opts = ProfileOptions(tof) specifies the options for downsampling the
+%   data using 3 pixel wide columns and will automatically generate the mask.   
 %
 %   Name-value pair arguments can be used to change any of the parameters
-%   from their default value. see makeStrainImage to see what they are.
+%   from their default value. see makeStrainProfile to see what they are.
 %
-%   See also makeStrainImage, BraggOptions.
+%   See also makeStrainProfile, BraggOptions.
 %
 
 % Copyright (C) 2020 The University of Newcastle, Australia
@@ -18,8 +18,6 @@ function [opts] = ImageOptions(tof,varargin)
 
 validateattributes((tof),{'numeric'},{'increasing'})
 p = inputParser;
-
-
 %% Add options
 %% supplyMask
 default = 'auto';
@@ -38,16 +36,20 @@ addParameter(p,'rangeRight',default, ...
 default = tof(round(length(tof)/2));
 addParameter(p,'d0',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','>=',tof(1),'<=',tof(end)}));
-%% nPix
-default = 18;
-addParameter(p,'nPix',default, ...
+%% sampleRange
+default = [10 245];
+addParameter(p,'sampleRange',default, ...
+    @(x) validateattributes((x),{'numeric'},{'vector','numel',2,'increasing','>=',1,'<=',255}));
+%% nWidth
+default = 3;
+addParameter(p,'nWidth',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive','integer'}));
 %% nRes
-default = 18;
+default = 3;
 addParameter(p,'nRes',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive','integer'}));
 %% Thresh
-default = 0.01;
+default = 0.05;
 addParameter(p,'Thresh',default, ...
     @(x) validateattributes((x),{'numeric'},{'scalar','positive','<=',1}));
 %% maskThresh
@@ -58,9 +60,13 @@ addParameter(p,'maskThresh',default, ...
 default = [];
 addParameter(p,'mask',default, ...
     @(x) validateattributes((x),{'logical'},{'size',[512,512]}));
+%% AveDir
+default = 'vert';
+expectedMethods = {'vert','horz'};
+addOptional(p,'AveDir',default, ...
+    @(x) any(validatestring(x,expectedMethods)));
+%% 
 %%
 parse(p,varargin{:});
 opts = p.Results;
-
 end
-

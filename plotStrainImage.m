@@ -19,6 +19,10 @@ function plotStrainImage(StrainImage,SigmaImage,opts)
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 addpath ./utility_functions/
 
+
+assert(nargin==3,'not enough input arguments')
+
+
 if ~isfield(opts,'figNum')
     opts.figNum = 1;
 end
