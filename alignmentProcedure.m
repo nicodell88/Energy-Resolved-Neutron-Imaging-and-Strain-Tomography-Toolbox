@@ -34,15 +34,28 @@ function [rODn,Rno,mask,X] = alignmentProcedure(x_init,stlFile,stlUnit,rHSs_all,
 %                   sample. (Default = 0)
 %   - 'maxIter'     The maximum number of itterations of the optimiser.
 %                   (Default = 100)
+%   - 'problemType' is used to define whether the sample is for '3D'
+%                   tomography, '2D' tomography, or if it is an
+%                   axisymetric sample, '2D-axisymmetric'.
 % Outputs:
-%   - rODn is a 3xN matrix, each column specifying the sample position in
-%       beam coordinates for each projection.
-%   - Rno is a 3x3xN array, each page specifying the rotations between the
-%       sample coordinates and beam coordinates for each projection.
-%   - mask is a 512x512xN logical array generated from the alignment results, 
-%       specifying which rays passed through the sample.
-%   - X is a structure whos fields contain the optimal results for the
-%       unknown parameters.
+%   For the 3D case:
+%       - rODn is a 3xN matrix, each column specifying the sample position in
+%           beam coordinates for each projection.
+%       - Rno is a 3x3xN array, each page specifying the rotations between the
+%           sample coordinates and beam coordinates for each projection.
+%       - mask is a 512x512xN logical array generated from the alignment results,
+%           specifying which rays passed through the sample.
+%       - X is a structure whos fields contain the optimal results for the
+%           unknown parameters.
+%   For the 2D case:
+%       - rODn is a 2xN matrix, each column specifying the sample position in
+%           beam coordinates for each projection.
+%       - Rno is a 2x2xN array, each page specifying the rotations between the
+%           sample coordinates and beam coordinates for each projection.
+%       - mask is a 512x1xN logical array generated from the alignment results,
+%           specifying which rays passed through the sample.
+%       - X is a structure whos fields contain the optimal results for the
+%           unknown parameters.
 %
 % See also getEdges
 %
@@ -77,6 +90,7 @@ addParameter(p,'plotGrid'       ,[3,4]  ,@(x) (validateattributes(x,{'numeric'},
 addParameter(p,'Nnodes'         ,1.5e3  ,@(x) (validateattributes(x,{'numeric'},{'scalar','integer','>',1e3})));
 addParameter(p,'Npix'           ,1.5e3  ,@(x) (validateattributes(x,{'numeric'},{'scalar','integer','>',1e3})));
 addParameter(p,'thresh'         ,0      ,@(x) validateattributes(x,{'numeric'},{'scalar'}) );
+addParameter(p,'problemType' ,'3D'      ,@(x) any(validatestring(x,{'3D','2D','2D-axisymmetric'})) );
 %% init
 addParameter(p,'Theta_ns',[],@(x) validateattributes(x,{'numeric'},{'numel',3}))
 addParameter(p,'Theta_ho',[],@(x) validateattributes(x,{'numeric'},{'numel',3}))
@@ -187,16 +201,48 @@ options = optimoptions(@fmincon,...
     'OutputFcn',plotFcn,...
     'PlotFcn',{@optimplotx,@optimplotfval});
 
-costFun = @(x)AlignmentCostFunction([x],rPDd,beta,rVOo,rHSs_all,Rsh_all,opts);
 
-%% run alignment
-Xopt = fmincon(costFun,x0,[],[],[],[],[],[],[],options);
+switch lower(p.Results.problemType)
+    case '3d'
+        %% run alignment 3D
+        costFun = @(x)AlignmentCostFunction([x],rPDd,beta,rVOo,rHSs_all,Rsh_all,opts);
+        Xopt = fmincon(costFun,x0,[],[],[],[],[],[],[],options);
+        
+    case '2d'
+        %% run alignment 2d
+        xinit_2d = x0;
+        xinit_2d([1,2,4,5,11]) = 0;
+        plotFcn2d = @(x,state,vars) plot2Dwrapper(x,state,vars);
+        options = optimoptions(options,'OutputFcn',plotFcn2d);
+        costFun = @(x)costWrapper2D([x]);
+        idx_ = [3,6,7,9,10];
+        x0_2d = x0(idx_);
+        Xopt2d = fmincon(costFun,x0_2d,[],[],[],[],[],[],[],options);
+        %         Xopt = zeros(11,1)
+        Xopt = xinit_2d;
+        Xopt(idx_) = Xopt2d;
+    case '2d-axisymmetric'
+        %% run alignment 2d
+        xinit_2d = x0;
+        xinit_2d([1,2,4,5,11]) = 0;
+        plotFcn2d = @(x,state,vars) plot2Dwrapper(x,state,vars);
+        options = optimoptions(options,'OutputFcn',plotFcn2d);
+        costFun = @(x)costWrapper2D([x]);
+        idx_ = [3,7,9,10];
+        x0_2d = x0(idx_);
+        Xopt2d = fmincon(costFun,x0_2d,[],[],[],[],[],[],[],options);
+        %         Xopt = zeros(11,1)
+        Xopt = xinit_2d;
+        Xopt(idx_) = Xopt2d;
+    otherwise
+        error('Problem type not defined')
+end
 %% Unwrap outputs
 X.Theta_ns  = Xopt(1:3);
 X.Theta_ho  = Xopt(4:6);
 X.rSDn      = Xopt(7:8);
 X.rOHh      = Xopt(9:11);
-
+% %% run alignment 2D
 X.Rns = eulerRotation(X.Theta_ns);
 X.Rho = eulerRotation(X.Theta_ho);
 %%
@@ -209,7 +255,8 @@ zCentres = centres(3,:);
 Y = Y(:);
 Z = Z(:);
 rPDn = [zeros(length(Y),1).';Y(:).';Z(:).'];
-%% convert results to absolute sample position
+
+%% convert results to absolute sample position 3D
 rODn = nan(3,np);
 Rno  = nan(3,3,np);
 mask = nan(size(Shadow));
@@ -219,5 +266,32 @@ for i = 1:np
     mask(:,:,i) = ProduceMasks(sample, rPDn, rODn(:,i),Rno(:,:,i),opts);
 end
 
+%% Knock down to 2d
+if contains(opts.problemType,'2d')
+    rODn = rODn(1:2,:);
+    Rno = Rno(1:2,1:2,:);
+    
+    reshape(...
+        any(~isnan(mask),1),...
+        opts.nColPix,[]);
+end
+
+%% local functions
+    function [F,G,H] = costWrapper2D(x2d)
+        x = xinit_2d;
+        x(idx_) = x2d;
+        [f,g,h] = AlignmentCostFunction(x,rPDd,beta,rVOo,rHSs_all,Rsh_all,opts);
+        
+        F = f;
+        G = g(idx_);
+        H = h(idx_,idx_);
+    end
+
+    function stop = plot2Dwrapper(x2d,state,vars)
+        %         x = zeros(11,1);
+        x = xinit_2d;
+        x(idx_) = x2d;
+        stop = plotProj(x,state,sample,p.Results.Shadow,rHSs_all,Rsh_all,opts,vars);
+    end
 end
 

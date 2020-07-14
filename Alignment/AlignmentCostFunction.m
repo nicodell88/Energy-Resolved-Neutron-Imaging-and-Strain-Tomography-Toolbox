@@ -1,10 +1,26 @@
 function [f,g,h] = AlignmentCostFunction(x,rPDd,beta,rVOo,rHSs,Rsh,opts)
 % [f,g,h] = scanMatchCost(x,rPDd,beta,rVOo,Rns1)
-% TODO
-
-% Not solving this problem anymore
-% Theta_nd    = x(1:3);     %Defines Rnd, the rotation between the detector coordinates and the beam coordinate system.
-% [Rnd,dRndDX,dRndDY,dRndDZ]      = eulerRotation(Theta_nd);
+% Calculates the cost, gradient and approximate hessian for the sample
+% alignment problem.
+%Inputs:
+%   - x: decision variables
+%   - rPDd: a cell array, each cell containings for each projection the
+%   locations of pixels believed to be behind the sample.
+%   - beta: a measure of intensity for how much each pixel contribues to
+%   the cost (based on edge height).
+%   - rVOo: a 2xNvert matrix, each column defining the position of a vertex in the finite element mesh.
+%   - rHSs: Position of the sample holder in the coordinates of the
+%   goniometer platform.
+%   - Rsh: commanded orientation of the sample, each page is a rotation
+%   matrix
+%   - opts is a structure containing
+%       sigma : tuning parameter
+%Outputs:
+%   - f: the cost.
+%   - g: the gradient of the cost.
+%   - h: gauss newton hessian approximation.
+%
+%See also alignmentProcedure.
 
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -35,12 +51,10 @@ h = zeros(nx,nx,nProj);
 parfor i = 1:nProj
     rPDn = rPDd{i};
     
-    %     Npix = length(beta{i});
-    
     for j = 1:nVert
         
         %% Calculate projections onto plane
-%         rVDn = (Rns*Rsh(:,:,i)* (Rho*rVOo(:,j) + rOHh) + rSDn);
+        %         rVDn = (Rns*Rsh(:,:,i)* (Rho*rVOo(:,j) + rOHh) + rSDn);
         rVDn = rSDn + Rns*rHSs(:,i) + Rns*Rsh(:,:,i)*rOHh + Rns*Rsh(:,:,i)*Rho*rVOo(:,j);
         %% Calculate norm
         err = rVDn(2:3,:) - rPDn(2:3,:);
@@ -49,8 +63,6 @@ parfor i = 1:nProj
         
         ftmp = 1/nProj * 1/(sqrt(2*pi*sigma^2)) * beta{i}.'* exp(-1/(2*sigma^2) * ErrorSquared.');
         f(i) = f(i)  + ftmp;
-        
-        
         
         if nargout(@AlignmentCostFunction)>1
             
@@ -74,29 +86,21 @@ parfor i = 1:nProj
                 Je.'*err .* beta{i}.' .* exp(-1/(2*sigma^2) * ErrorSquared)...
                 ,2);
             
-            %             h(:,:,i) = h(:,:,i)+...
-            %                 Je.'*Je * ...
-            %                 1/nProj* 1/(sqrt(2*pi*sigma^2))*  (-1/sigma^2) * ...
-            %                 sum(beta{i}.' .* exp(-1/(2*sigma^2) * ErrorSquared),...
-            %                 'all');
-            J = (-1/sigma^2 * 1/2 * ((Je.'*err).*sqrt(beta{i}).') .* exp(-1/(4*sigma^2) * ErrorSquared)).'; 
+            J = (-1/sigma^2 * 1/2 * ((Je.'*err).*sqrt(beta{i}).') .* exp(-1/(4*sigma^2) * ErrorSquared)).';
             h(:,:,i) = h(:,:,i) + ...
                 1/nProj* 2/(sqrt(2*pi*sigma^2)) * (J.'*J);
-        
+            
         end
     end
 end
 
 f = -sum(f,'all');
 
-if nargout>1
-    g =   -sum(g,2);
-else
-    g = [];
-end
+
+g =   -sum(g,2);
+
 
 h = -sum(h,3);
 
-% h = [];
 end
 

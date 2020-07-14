@@ -4,7 +4,12 @@ function R = stage_rotation(about_z,about_y)
 % to beamcoordinate system.
 % the stage consists of two rotations, the first rotation happens about the
 % y axis and the second rotation about the z axis
-%  
+%
+% This function is for the goniometer used in: Hendriks, J. N., Gregg, A. W.
+% T., Jackson, R. R., Wensrich, C. M., Wills, A., Tremsin, A. S., ... &
+% Kirstein, O. (2019). Tomographic reconstruction of triaxial strain fields
+% from Bragg-edge neutron imaging. Physical Review Materials, 3(11),
+% 113803.
 
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
@@ -30,4 +35,4 @@ Ry = [ ...
 
 
 R = Ry*Rz;
-% R = Rz*Ry;
+
