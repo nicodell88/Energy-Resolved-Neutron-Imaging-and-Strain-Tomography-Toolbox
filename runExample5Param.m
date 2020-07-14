@@ -44,6 +44,6 @@ xlabel('Time-Of-Flight - [seconds]')
 ylabel('Normalised Transmission Intensity - [arbitrary units]')
 grid minor
 %% Fit Bragg-Edge
-opts   = BraggOptions(tof,'5param','range',[0.0185 0.019],'t_hkl0',0.0187,'Par',true);
+opts   = BraggOptions(tof,'5param','range',[0.0185 0.019],'t_hkl0',0.0187,'Par',true,'outputmode','strain');
 
 [d_cell,std_cell,TrFit_cell,fitInfo_cell] = fitEdges(Tr,tof,opts);

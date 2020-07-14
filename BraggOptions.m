@@ -49,6 +49,15 @@ addParameter(p,'Par',default, ...
 %% Parse
 parse(p,method);
 %% Add options specific to each method
+%% OutputMode
+defaultOutput = 'edge';
+expectedMode = {'edge','strain','microstrain'};
+addParameter(p,'outputMode',defaultOutput, ...
+    @(x) any(validatestring(x,expectedMode)));
+%% d0
+default  = nan;
+addParameter(p,'d0',default,...
+    @(x) validateattributes((x),{'numeric'},{'scalar','>=',tof(1),'<=',tof(end)}));
 %% a00
 default = 0.5;
 addParameter(p,'a00',default, ...

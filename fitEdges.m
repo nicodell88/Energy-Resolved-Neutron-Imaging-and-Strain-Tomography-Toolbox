@@ -35,7 +35,10 @@ assert(all(Trncols == length(tof)),'Expected the number of columns in each cell 
 
 tof = tof(:).';
 %% Fill opts structure
-if nargin>=3
+if ~exist('opts','var')
+    opts = BraggOptions(tof);
+end
+
     %% Method
     if isfield(opts,'method')
         switch lower(opts.method)
@@ -112,15 +115,13 @@ if nargin>=3
     if ~isfield(opts,'Par')
         opts.Par = false;
     end
-else
-    opts.method = 'attenuation';
-    edgeFit = @(tr,wl,op)fitEdgeAttenuation(tr,wl,op);
-    ntof = length(tof);
-    opts.startIdx    = [1 round(0.25*ntof)];
-    opts.endIdx      = [round(0.75*ntof) ntof];
-    opts.plot   = false;
-end
 
+
+
+%% 
+if any(strcmp(opts.outputMode,{'microstrain','strain'})) && isnan(opts.d0)
+    warning('You have selected strain as an output, but have not provided ''d0'', the average edge location will be used for d0.')
+end
 %% fitEdge
 np = numel(Tr); %number of projections
 
@@ -255,6 +256,36 @@ else %par for multipl proj
     end
     delete(ppm);
 end%if
+
+%% determine whether to output strain or edge
+if isnan(opts.d0)
+    d0 = mean(vertcat(d_cell{:}),'all');
+end
+
+if any(strcmp(opts.method,{'crosscorr','gpcc','gpcc2'}))
+    numd0 = 0;
+else
+    numd0 = d0;
+end
+
+
+
+switch opts.outputMode
+    case 'strain'
+        %% Strain
+        func = @(c) (c-numd0)./d0;
+        d_cell = cellfun(func,d_cell,'UniformOutput',false);
+        %% Standard Deviation
+        func = @(c) (c)./d0;
+        std_cell = cellfun(func,std_cell,'UniformOutput',false);
+    case 'microstrain'
+        %% Strain
+        func = @(c) 1e6*(c-numd0)./d0;
+        d_cell = cellfun(func,d_cell,'UniformOutput',false);
+        %% Standard Deviation
+        func = @(c) 1e6*(c)./d0;
+        std_cell = cellfun(func,std_cell,'UniformOutput',false);
+end
 
 end%function
 
