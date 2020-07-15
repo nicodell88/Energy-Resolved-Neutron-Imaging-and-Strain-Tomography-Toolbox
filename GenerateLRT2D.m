@@ -1,10 +1,10 @@
-function [Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,colRange,nRow,varargin)
+function [Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,rowRange,nCol,varargin)
 %GenerateLRT2D generates the geometric properties of the LRT measurement,
 %i.e., entry and exit of beam into sample, irradiated length, beam
 %direction. Each of these will be associated with downsampled time of
 %flight data. After calling this function edges can be fit to the time of
 %flight data.
-%[Tr,wl,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,colRange,nRow)
+%[Tr,wl,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,rowRange,nCol)
 %
 %   Inputs: 
 %       - ProjIdx is a vector of indicies indicating which files will be
@@ -40,9 +40,9 @@ function [Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjF
 %           Rno.'*rABn would rotate the vector rABn from beam coordinates
 %           {n} to sample coordinates {o}, producing rABo. Each page is
 %           associated with a projection.
-%       - colRange is a 2 element vector defining the start and end
+%       - rowRange is a 2 element vector defining the start and end
 %           row to average over.
-%       - nRow is the number of columns to average over.
+%       - nCol is the number of columns to average over.
 %       Two optional inputs:
 %       - trig_delay delay in seconds between receiving the trigger signal
 %           and TODO. Default is 1.243e-5 [seconds] (JPARC MLF, beam line 22 RADEN)
@@ -63,19 +63,18 @@ function [Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjF
 %           multi-body samples G may be greater. Where G is greater than 2
 %           - columns associated with measurements that correspond to rays
 %           that only enter the sample once are padded with NaNs.
-%       - exit is also a cell array, each cell contains aG-by-H matrix,
+%       - exit is also a cell array, each cell contains a G-by-H matrix,
 %           defning where each beam leaves the sample. See above.
 %       - nhat is a cell array, each cell containing a set of unit vectors
-%       defining the beam direction for each measurement.
+%           defining the beam direction for each measurement.
 %       - L is a cell array, each cell containing an H-by-1 vector, where
-%       each element is the total irradiated length of each measurement.
+%           each element is the total irradiated length of each measurement.
 %       - yInds is a cell array, each cell contains a vector of indicies
-%       indicating which measurements were valid, i.e., if a ray does not
-%       intersect the sample at all, or intersects the sample an odd number
-%       of times the measurement is discarded.
+%           indicating which measurements were valid, i.e., if a ray does not
+%           intersect the sample at all, or intersects the sample an odd number
+%           of times the measurement is discarded.
 %       - nSegs is cell array where each cell contains a H-by-1 vector indicating how many disjoint line
 %           segments make up the ray path.
-%   TODO: change nRow and nCol to make sense, might need to remove H and G
 %   from description, since they change for each cell.
 %
 %See also downsample2D_LRT, find_intersects_2D.
@@ -84,7 +83,7 @@ function [Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjF
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 08/07/2020
+% Last modified: 15/07/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 TBdir = fileparts(mfilename('fullpath'));
 addpath(fullfile(TBdir,'LRT_processing'));
@@ -115,10 +114,10 @@ addRequired(p,'rODn_all',...
 addRequired(p,'Rno_all',...
     @(x) validateattributes(x,{'numeric'},{'size',[2,2,np]}));
 
-addRequired(p,'colRange',...
+addRequired(p,'rowRange',...
     @(x) validateattributes(x,{'numeric'},{'increasing','positive','integer','<=',512}));
 
-addRequired(p,'nRow',...
+addRequired(p,'nCol',...
     @(x) validateattributes(x,{'numeric'},{'scalar','positive','integer','<=',50}));
 
 addOptional(p,'trig_delay',1.243e-5,...
@@ -128,7 +127,7 @@ addOptional(p,'source_dist',17.7971,...
     @(x) validateattributes(x,{'numeric'},{'scalar','positive'}));
 
 %Parse
-parse(p,ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,colRange,nRow,varargin{:});
+parse(p,ProjIdx,ProjFileSpec,OBfile,rBOo,mask_all,rODn_all,Rno_all,rowRange,nCol,varargin{:});
 
 %% Check Open Beam file exsits
 FailMessage = sprintf('The matlab data file ''%s'' does not exist.',p.Results.OBfile);
@@ -154,8 +153,8 @@ nSegs = cell(np,1);
 wl = OB_pro.lambda;
 tof = OB_unpro.tof;
 %% Options
-opts.nRow = p.Results.nRow;
-opts.colRange = p.Results.colRange;
+opts.nCol = p.Results.nCol;
+opts.rowRange = p.Results.rowRange;
 
 %% Loop over projections
 wh      = waitbar(0,'Downsampling', ...
@@ -195,6 +194,7 @@ processed.nhat = nhat;
 processed.L = L;
 processed.yInds = yInds;
 processed.nsegs = nSegs;
+processed.nCol = p.Results.nCol;
 %% Save the results
-save(['projs_' num2str(min(p.Results.ProjIdx)) '_to_' num2str(max(p.Results.ProjIdx)) '_preprocessed_average_over_' num2str(p.Results.nRow) 'col'],'processed')
+save(['projs_' num2str(min(p.Results.ProjIdx)) '_to_' num2str(max(p.Results.ProjIdx)) '_preprocessed_average_over_' num2str(p.Results.nCol) 'col'],'processed')
 end

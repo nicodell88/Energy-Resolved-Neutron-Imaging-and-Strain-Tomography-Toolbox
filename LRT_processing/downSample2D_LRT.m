@@ -33,17 +33,16 @@ function [Tr,wl,entry,exit,L,nhat,yInds,nSegs] = downSample2D_LRT(OB_pro,Proj_pr
 %           Rno.'*rABn would rotate the vector rABn from beam coordinates
 %           {n} to sample coordinates {o}, producing rABo.
 %       - opts is a structure containing:
-%           opts.nRow is the number of columns to average over.
-%           opts.colRange is a 2 element vector defining the start and end
+%           opts.nCol is the number of columns to average over.
+%           opts.rowRange is a 2 element vector defining the start and end
 %           row to average over.
-%   TODO: change nRow and nCol to make sense
 %
 % See also GenerateLRT2D, find_intersects_2D, GenerateLRT3D.
 
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 08/07/2020
+% Last modified: 15/07/2020
 % This program is licensed under GNU GPLv3, see LICENSE for more details.
 
 %% Downsample
@@ -62,13 +61,13 @@ try
     H =  pcolor(totalAtten);
     shading flat
     
-    for i =1:(floor(nres/opts.nRow))
+    for i =1:(floor(nres/opts.nCol))
         iter=i;
-        X = i/(floor(nres/opts.nRow));
+        X = i/(floor(nres/opts.nCol));
         waitbar(X,h);
-        j_inds = (i)*opts.nRow + [0:(opts.nRow-1)];
-        %         j_inds = (i)*opts.nRow + [-2:+];
-        i_inds = opts.colRange(1):opts.colRange(2);
+        j_inds = (i)*opts.nCol + [0:(opts.nCol-1)];
+        %         j_inds = (i)*opts.nCol + [-2:+];
+        i_inds = opts.rowRange(1):opts.rowRange(2);
         
         idx = i_inds>0 & i_inds<=nres;
         i_inds = i_inds(idx);

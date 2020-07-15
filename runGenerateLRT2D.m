@@ -1,9 +1,9 @@
-% runProcessLRT2Dexample
+% runGenerateLRT2D
 %
 % Copyright (C) 2020 The University of Newcastle, Australia
 % Authors:
 %   Nicholas O'Dell <Nicholas.Odell@newcastle.edu.au>
-% Last modified: 06/07/2020
+% Last modified: 15/07/2020
 %
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -43,9 +43,9 @@ sample      = load('/Users/megatron/Dropbox/J-Parc2018 Working Folder/data/Proce
 AlignResult = load('/Users/megatron/Dropbox/J-Parc2018 Working Folder/data/ProcessedWithToolbox/RPmask.mat');
 
 %% Tuning parametes for averaging
-colRange   = [20,250];
-nRow       = 4;
+rowRange   = [20,250];
+nCol       = 4;
 
-[Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,sample.BoundaryRP,AlignResult.mask,AlignResult.rODn,AlignResult.Rno,colRange,nRow);
+[Tr,wl,tof,entry,exit,L,nhat,yInds,nSegs] = GenerateLRT2D(ProjIdx,ProjFileSpec,OBfile,sample.BoundaryRP,AlignResult.mask,AlignResult.rODn,AlignResult.Rno,rowRange,nCol);
 
 
