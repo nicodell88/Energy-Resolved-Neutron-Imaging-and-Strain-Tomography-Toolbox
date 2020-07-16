@@ -65,7 +65,7 @@ try
         iter=i;
         X = i/(floor(nres/opts.nCol));
         waitbar(X,h);
-        j_inds = (i)*opts.nCol + [0:(opts.nCol-1)];
+        j_inds = (i)*opts.nCol + (0:(opts.nCol-1));
         %         j_inds = (i)*opts.nCol + [-2:+];
         i_inds = opts.rowRange(1):opts.rowRange(2);
         
