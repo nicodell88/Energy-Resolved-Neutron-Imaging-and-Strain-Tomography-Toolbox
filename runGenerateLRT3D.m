@@ -36,7 +36,7 @@ set(0,'defaultFigureColor','w')
 
 %% Inputs
 ProjIdx = 0:69;  %Projections to process
- ProjFileSpec    = ...'/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/OpenBeam/OpenBeamImg__proj001_idx.mat';
+ ProjFileSpec   = ...'/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2020 Working Folder/Data/OpenBeam/OpenBeamImg__proj001_idx.mat';
                       '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2019 Working Folder/data/cube_plug/Cube1__proj%d_idx.mat';
 OBfile          = ...'/Users/megatron/Dropbox/J-Parc2018 Working Folder/data/ProcessedWithToolbox/preprocessed/OpenBeam_proj_003.mat';
                      '/Users/megatron/Dropbox/Strain Tomography 2020/J-PARC 2019 Working Folder/data/open_beam/open_beam_11ksec.mat';       

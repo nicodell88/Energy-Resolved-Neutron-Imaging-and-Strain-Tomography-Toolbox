@@ -123,7 +123,7 @@ try
                 PI(iter) = mean(I(~isnan(Proj_sec(:,1))));
                 PJ(iter) = mean(J(~isnan(Proj_sec(:,1))));
                 
-
+                
             end
         end
     end
@@ -154,8 +154,21 @@ rPOo = Rno.'*(rPDn - rODn);
 lines = [rPOo;nhat_o];
 
 [entry,exit,nhat,L,yInds,nSegs,rejects] = find_intersects_3D(sample,lines);
-
-
 wl = Proj_pro.lambda;
+
+%% Plotting
+figure(2)
+clf
+p = patch('Faces',sample.F,'Vertices',sample.V);
+p.FaceAlpha =0.1;
+axis equal
+hold on
+sc = 8e-3;
+quiver3(rPOo(1,:)-nhat_o(1,:)*sc,rPOo(2,:)-nhat_o(2,:)*sc,rPOo(3,:)-nhat_o(3,:)*sc,nhat_o(1,:)*sc*2,nhat_o(2,:)*sc*2,nhat_o(3,:)*sc*2,0)
+plot3(entry(1,:),entry(2,:),entry(3,:),'ro')
+plot3(exit(1,:),exit(2,:),exit(3,:),'ro')
+hold off
+view(3)
+
 end
 
